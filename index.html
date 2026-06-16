@@ -61,14 +61,14 @@
             background: #94a3b8;
         }
         
-        /* High fidelity print styling matching exactly A5 Landscape standards */
+        /* High fidelity print styling matching exactly 160mm x 110mm Slip standards */
         .receipt-container {
-            width: 210mm;
-            height: 148mm;
-            min-width: 210mm;
-            min-height: 148mm;
-            max-width: 210mm;
-            max-height: 148mm;
+            width: 160mm;
+            height: 110mm;
+            min-width: 160mm;
+            min-height: 110mm;
+            max-width: 160mm;
+            max-height: 110mm;
             box-sizing: border-box;
             background-color: #ffffff;
             position: relative;
@@ -81,7 +81,7 @@
             top: 52%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-12deg);
-            font-size: 4.4rem;
+            font-size: 3.2rem;
             font-weight: 800;
             color: rgba(37, 99, 235, 0.03); /* Faint executive blue watermark */
             pointer-events: none;
@@ -92,12 +92,12 @@
         
         /* Realistic Paid Rubber Stamp Graphic styling */
         .paid-stamp {
-            border: 3px double rgba(37, 99, 235, 0.75); /* Deep Blue Ink Stamp */
+            border: 2px double rgba(37, 99, 235, 0.75); /* Deep Blue Ink Stamp */
             color: rgba(37, 99, 235, 0.85);
             transform: rotate(-7deg);
             text-transform: uppercase;
-            font-weight: 900;
-            letter-spacing: 3px;
+            font-weight: 950;
+            letter-spacing: 2px;
         }
 
         /* Overdue pulse warning badge */
@@ -121,8 +121,8 @@
                 position: absolute;
                 left: 0;
                 top: 0;
-                width: 210mm;
-                height: 148mm;
+                width: 160mm;
+                height: 110mm;
             }
         }
     </style>
@@ -475,8 +475,8 @@
             <!-- Aspect-ratio containment wrapper for receipt paper modeling -->
             <div class="w-full overflow-x-auto bg-slate-100 border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-inner flex justify-start lg:justify-center items-center">
                 
-                <!-- PRINT BLOCK: The A5 Landscape Paper Sheet Mock (High Contrast Blue/White Theme, Logo-Free) -->
-                <div id="print-target" class="receipt-container border-8 border-brand-800 p-5 flex flex-col justify-between shadow-lg text-slate-800 font-sans relative">
+                <!-- PRINT BLOCK: The Compact Landscape Paper Sheet Mock (High Contrast Blue/White Theme, Logo-Free) -->
+                <div id="print-target" class="receipt-container border-[6px] border-brand-800 p-4 flex flex-col justify-between shadow-lg text-slate-800 font-sans relative">
                     
                     <!-- Inner design decorative border standard -->
                     <div class="absolute inset-1 border border-brand-100 pointer-events-none"></div>
@@ -485,22 +485,21 @@
                     <div class="receipt-watermark font-serif select-none">KULUBYA ESTATES</div>
 
                     <!-- Header Segment: Typographical Branding & Dynamic Metadata -->
-                    <div class="relative z-10 flex justify-between items-start border-b-2 border-slate-100 pb-2">
+                    <div class="relative z-10 flex justify-between items-start border-b border-slate-100 pb-1.5">
                         <div>
                             <!-- Classically structured corporate typography - No graphical logo as explicitly requested -->
-                            <h2 class="font-serif text-2xl font-extrabold text-brand-900 tracking-wide">KULUBYA ESTATES</h2>
-                            <p class="text-[9px] text-brand-600 font-bold tracking-widest uppercase mt-0.5">High-Class Residential & Commercial Management</p>
-                            <p class="text-[9px] text-slate-500 mt-1 font-medium leading-relaxed">
-                                Kibiri B<br>
-                                Telephone Contact: 0776026769 &nbsp;|&nbsp; 0705482876 &nbsp;|&nbsp; 0776805304
+                            <h2 class="font-serif text-xl font-extrabold text-brand-900 tracking-wide leading-tight">KULUBYA ESTATES</h2>
+                            <p class="text-[8px] text-brand-600 font-bold tracking-widest uppercase mt-0.5">Residential & Commercial Management</p>
+                            <p class="text-[8px] text-slate-500 mt-0.5 font-medium leading-normal">
+                                Kibiri B &bull; Tel: 0776026769 &nbsp;|&nbsp; 0705482876 &nbsp;|&nbsp; 0776805304
                             </p>
                         </div>
                         
                         <div class="text-right">
-                            <span class="inline-block bg-brand-900 text-white font-serif italic font-bold tracking-widest text-[11px] px-3.5 py-1.5 rounded">
+                            <span class="inline-block bg-brand-900 text-white font-serif italic font-bold tracking-widest text-[9px] px-2.5 py-1 rounded">
                                 RENT RECEIPT
                             </span>
-                            <div class="text-[11px] text-slate-500 space-y-0.5 mt-2">
+                            <div class="text-[9px] text-slate-500 space-y-0.5 mt-1.5">
                                 <div>Receipt No: <strong class="text-brand-900 font-bold" id="rec-no">KE-2026-0000</strong></div>
                                 <div>Date: <strong class="text-slate-800" id="rec-date">--/--/----</strong></div>
                             </div>
@@ -508,60 +507,60 @@
                     </div>
 
                     <!-- Middle Segment: Fill-ins Layout mimicking a traditional layout -->
-                    <div class="relative z-10 grid grid-cols-12 gap-y-2 text-xs py-2 my-auto border-b border-dashed border-slate-200">
+                    <div class="relative z-10 grid grid-cols-12 gap-y-1.5 text-[11px] py-1.5 my-auto border-b border-dashed border-slate-200">
                         
                         <!-- Tenant details row -->
-                        <div class="col-span-12 flex items-baseline gap-2">
-                            <span class="text-slate-500 font-bold uppercase text-[9px] tracking-wide w-36 shrink-0">Received With Thanks From:</span>
-                            <span class="border-b border-slate-300 font-bold text-slate-950 text-sm grow pb-0.5 px-1 italic" id="rec-tenant-name">--------------------------------</span>
+                        <div class="col-span-12 flex items-baseline gap-1.5">
+                            <span class="text-slate-500 font-bold uppercase text-[8px] tracking-wide w-32 shrink-0">Received With Thanks From:</span>
+                            <span class="border-b border-slate-300 font-bold text-slate-950 text-xs grow pb-0.5 px-1 italic" id="rec-tenant-name">--------------------------------</span>
                         </div>
 
                         <!-- Absolute sums in written words -->
-                        <div class="col-span-12 flex items-baseline gap-2">
-                            <span class="text-slate-500 font-bold uppercase text-[9px] tracking-wide w-36 shrink-0">The Sum of (In Words):</span>
-                            <span class="border-b border-slate-300 font-serif italic text-slate-700 grow pb-0.5 px-1 leading-relaxed text-[11px]" id="rec-amount-words">Zero Shillings Only</span>
+                        <div class="col-span-12 flex items-baseline gap-1.5">
+                            <span class="text-slate-500 font-bold uppercase text-[8px] tracking-wide w-32 shrink-0">The Sum of (In Words):</span>
+                            <span class="border-b border-slate-300 font-serif italic text-slate-700 grow pb-0.5 px-1 leading-normal text-[10px]" id="rec-amount-words">Zero Shillings Only</span>
                         </div>
 
                         <!-- Real estate unit identifier and dates tracker -->
-                        <div class="col-span-12 grid grid-cols-2 gap-4">
-                            <div class="flex items-baseline gap-2">
-                                <span class="text-slate-500 font-bold uppercase text-[9px] tracking-wide w-36 shrink-0">Being Rent Payment For:</span>
+                        <div class="col-span-12 grid grid-cols-2 gap-3">
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="text-slate-500 font-bold uppercase text-[8px] tracking-wide w-32 shrink-0">Being Rent Payment For:</span>
                                 <span class="border-b border-slate-300 font-bold text-slate-900 grow pb-0.5 px-1" id="rec-unit-no">----------</span>
                             </div>
-                            <div class="flex items-baseline gap-2">
-                                <span class="text-slate-500 font-bold uppercase text-[9px] tracking-wide w-20 shrink-0">For Period:</span>
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="text-slate-500 font-bold uppercase text-[8px] tracking-wide w-16 shrink-0">For Period:</span>
                                 <span class="border-b border-slate-300 font-bold text-slate-900 grow pb-0.5 px-1" id="rec-period">----------</span>
                             </div>
                         </div>
 
                         <!-- Payment metadata reference -->
-                        <div class="col-span-12 grid grid-cols-2 gap-4">
-                            <div class="flex items-baseline gap-2">
-                                <span class="text-slate-500 font-bold uppercase text-[9px] tracking-wide w-36 shrink-0">Method of Payment:</span>
+                        <div class="col-span-12 grid grid-cols-2 gap-3">
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="text-slate-500 font-bold uppercase text-[8px] tracking-wide w-32 shrink-0">Method of Payment:</span>
                                 <span class="border-b border-slate-300 font-semibold text-slate-800 grow pb-0.5 px-1" id="rec-method">----------</span>
                             </div>
-                            <div class="flex items-baseline gap-2">
-                                <span class="text-slate-500 font-bold uppercase text-[9px] tracking-wide w-20 shrink-0">Ref / TxID:</span>
-                                <span class="border-b border-slate-300 font-mono text-brand-900 font-semibold grow pb-0.5 px-1" id="rec-ref">----------</span>
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="text-slate-500 font-bold uppercase text-[8px] tracking-wide w-16 shrink-0">Ref / TxID:</span>
+                                <span class="border-b border-slate-300 font-mono text-brand-900 font-semibold grow pb-0.5 px-1 truncate" id="rec-ref">----------</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Bottom Segment: Multi-tier Ledger Sums, official verification stamp, authorization block -->
-                    <div class="relative z-10 flex justify-between items-end pt-1.5">
+                    <div class="relative z-10 flex justify-between items-end pt-1">
                         
                         <!-- Premium Portion Ledger Block -->
-                        <div class="flex items-center gap-1.5">
-                            <div class="border border-brand-200 bg-white rounded divide-y divide-brand-100 overflow-hidden flex flex-col text-[10px] w-52 shadow-sm">
-                                <div class="px-2.5 py-1 flex justify-between bg-slate-50">
+                        <div class="flex items-center gap-1">
+                            <div class="border border-brand-200 bg-white rounded divide-y divide-brand-100 overflow-hidden flex flex-col text-[9px] w-44 shadow-sm">
+                                <div class="px-2 py-0.5 flex justify-between bg-slate-50">
                                     <span class="text-slate-500 font-semibold">Expected Rent:</span>
                                     <span class="font-bold text-slate-700"><span class="rec-currency-symbol">UGX</span> <span id="rec-rate-val">0</span></span>
                                 </div>
-                                <div class="px-2.5 py-1 flex justify-between bg-brand-50/50">
+                                <div class="px-2 py-1 flex justify-between bg-brand-50/50">
                                     <span class="text-brand-800 font-bold">Amount Paid:</span>
                                     <span class="font-black text-brand-950 text-xs"><span class="rec-currency-symbol">UGX</span> <span id="rec-amount-val">0</span></span>
                                 </div>
-                                <div class="px-2.5 py-1 flex justify-between bg-rose-50/40" id="rec-balance-wrapper">
+                                <div class="px-2 py-0.5 flex justify-between bg-rose-50/40" id="rec-balance-wrapper">
                                     <span class="text-rose-700 font-bold">Remaining Balance:</span>
                                     <span class="font-black text-rose-600"><span class="rec-currency-symbol">UGX</span> <span id="rec-balance-val">0</span></span>
                                 </div>
@@ -570,23 +569,23 @@
 
                         <!-- Deep blue stamp visual representation -->
                         <div id="rec-stamp-wrapper" class="flex justify-center items-center h-full pb-0.5 transition duration-150">
-                            <div class="paid-stamp border-4 rounded-lg px-3.5 py-1 text-center font-black select-none opacity-90 text-sm">
+                            <div class="paid-stamp border-2 rounded-md px-2.5 py-0.5 text-center font-black select-none opacity-90 text-xs">
                                 PAID<br>
-                                <span class="text-[8px] tracking-normal font-sans font-bold" id="stamp-date-val">--/--/----</span>
+                                <span class="text-[7px] tracking-normal font-sans font-bold" id="stamp-date-val">--/--/----</span>
                             </div>
                         </div>
 
                         <!-- Signature panel block - Formatted with authorized representative name 'Nampiima Hasifah' -->
-                        <div class="text-center w-52 relative">
+                        <div class="text-center w-44 relative">
                             <!-- Premium Representative Autograph Name Layout -->
-                            <div class="h-8 relative flex justify-center items-end mb-0.5" id="rec-sig-line">
-                                <span class="font-serif italic text-brand-700 text-sm font-extrabold tracking-wide absolute bottom-1.5 rotate-[-2deg]" style="font-family: 'Playfair Display', serif;">
+                            <div class="h-6 relative flex justify-center items-end mb-0.5" id="rec-sig-line">
+                                <span class="font-serif italic text-brand-700 text-xs font-extrabold tracking-wide absolute bottom-0.5 rotate-[-2deg]" style="font-family: 'Playfair Display', serif;">
                                     Nampiima Hasifah
                                 </span>
                             </div>
                             <div class="border-t border-slate-300 pt-0.5">
-                                <p class="text-[9px] font-bold text-brand-900 uppercase tracking-wider">Nampiima Hasifah</p>
-                                <p class="text-[8px] text-slate-500 mt-0.5">Authorized Estate Representative</p>
+                                <p class="text-[8px] font-bold text-brand-900 uppercase tracking-wider">Nampiima Hasifah</p>
+                                <p class="text-[7px] text-slate-500">Authorized Estate Representative</p>
                             </div>
                         </div>
 
@@ -599,7 +598,7 @@
                 <i data-lucide="info" class="w-5 h-5 text-brand-600 shrink-0 mt-0.5"></i>
                 <div class="space-y-1">
                     <p class="font-bold text-slate-900">Important System Instructions:</p>
-                    <p class="leading-relaxed">To print cleanly on standard receipt machines, select "Download PDF" to trigger an automated print layout container formatted directly to international ISO A5 landscape dimensions.</p>
+                    <p class="leading-relaxed">To print cleanly on standard receipt machines, select "Download PDF" to trigger an automated print layout container formatted directly to international mini-receipt landscape dimensions.</p>
                 </div>
             </div>
 
@@ -826,6 +825,7 @@
             closeDeleteModal();
         }
 
+        // Show generic Toast notification helper
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -1496,21 +1496,21 @@
 
             showToast("Preparing document file stream...", "success");
 
-            // Configure html2pdf parameters optimized specifically for A5 Landscape
+            // Configure html2pdf parameters optimized specifically for 160mm x 110mm Slip size
             const pipelineOptions = {
                 margin: 0,
                 filename: `Kulubya_Estates_Receipt_${receiptCode}_${safeSystemFilename}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { 
-                    scale: 2, // 2 is perfect for high-DPI scaling of A5 layouts
+                    scale: 3, // High scale output to secure crisp graphics on the compact canvas
                     useCORS: true,
                     letterRendering: true,
-                    scrollX: 0, // Solves cutoffs when user is scrolled on their phone
+                    scrollX: 0, // Solves cutoffs when user is scrolled on their mobile screens
                     scrollY: 0
                 },
                 jsPDF: { 
                     unit: 'mm', 
-                    format: 'a5', 
+                    format: [160, 110], // Output exactly matched to match the scaled display aspect ratio
                     orientation: 'landscape',
                     compress: true
                 }
