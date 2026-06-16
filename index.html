@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kulubya Estates - Premium Receipt & Ledger Portal</title>
+    <!-- Tailwind CSS for utility-first modular styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter for interfaces & Playfair Display for classic estate elegance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons for clean vector icon design -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- HTML2PDF.js for client-side high fidelity PDF rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6', // Prime Royal Blue
+                            600: '#2563eb', // Executive Blue
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                            950: '#172554',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom slick scrollbars for tables & containers */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* High fidelity print styling matching exactly A5 Landscape standards */
+        .receipt-container {
+            width: 210mm;
+            height: 148mm;
+            box-sizing: border-box;
+            background-color: #ffffff;
+            position: relative;
+        }
+        
+        .receipt-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-12deg);
+            font-size: 4.8rem;
+            font-weight: 800;
+            color: rgba(37, 99, 235, 0.03); /* Faint executive blue watermark */
+            pointer-events: none;
+            user-select: none;
+            white-space: nowrap;
+            letter-spacing: 0.2em;
+        }
+        
+        /* Realistic Paid Rubber Stamp Graphic styling */
+        .paid-stamp {
+            border: 3px double rgba(37, 99, 235, 0.75); /* Deep Blue Ink Stamp */
+            color: rgba(37, 99, 235, 0.85);
+            transform: rotate(-7deg);
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: 3px;
+        }
+
+        /* Overdue pulse warning badge */
+        .overdue-pulse {
+            animation: pulse-border 2s infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.2); }
+            50% { border-color: rgba(239, 68, 68, 0.8); box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1); }
+        }
+
+        /* Screen visual container responsiveness scale helper */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-target, #print-target * {
+                visibility: visible;
+            }
+            #print-target {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 210mm;
+                height: 148mm;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen font-sans flex flex-col selection:bg-brand-500 selection:text-white">
+
+    <header class="border-b border-brand-100 bg-white sticky top-0 z-40 px-4 py-4 sm:px-6 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center shadow-md shadow-brand-500/20">
+                    <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="font-serif text-xl sm:text-2xl font-extrabold tracking-tight text-brand-900 flex items-center gap-2">
+                        Kulubya Estates
+                        <span class="text-[10px] font-sans px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-600 font-semibold border border-brand-200">Management Suite</span>
+                    </h1>
+                    <p class="text-xs text-slate-500">Premium Digital Rent Ledger & Instant PDF Receipts System</p>
+                </div>
+            </div>
+            
+            <!-- Overall Active Dashboard Stats Counter -->
+            <div class="flex items-center gap-4 text-xs">
+                <div class="bg-slate-50 rounded-lg px-3.5 py-2 border border-slate-200 flex items-center gap-2">
+                    <span class="h-2 w-2 rounded-full bg-brand-500"></span>
+                    <span class="text-slate-600 font-medium">Active Tenants:</span>
+                    <strong class="text-slate-900 font-bold" id="stat-tenant-count">0</strong>
+                </div>
+                <div class="bg-slate-50 rounded-lg px-3.5 py-2 border border-slate-200 flex items-center gap-2">
+                    <i data-lucide="receipt" class="w-4 h-4 text-brand-500"></i>
+                    <span class="text-slate-600 font-medium">Receipts Issued:</span>
+                    <strong class="text-slate-900 font-bold" id="stat-receipt-count">0</strong>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Floating Dynamic Toast Notification Container -->
+    <div id="toast-container" class="fixed top-24 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full"></div>
+
+    <!-- Custom Modal: Universal Deletion Confirmation (Prevents native browser blocking alerts) -->
+    <div id="delete-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 p-6 transform scale-95 transition-all duration-200">
+            <div class="flex items-start gap-4">
+                <div class="p-3 bg-red-50 rounded-xl text-red-500 shrink-0">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-lg font-bold text-slate-900" id="delete-modal-title">Verify Deletion</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed" id="delete-modal-description">
+                        Are you sure you want to perform this delete action? This will wipe the selected database parameters and cannot be undone.
+                    </p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button onclick="closeDeleteModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition">
+                    Cancel
+                </button>
+                <button onclick="confirmSystemDeletion()" class="px-5 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold text-sm shadow-md shadow-red-500/10 transition">
+                    Yes, Confirm Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6">
+        
+        <!-- Left Column: Unified Tenant Hub & Form Entry (Width: 42%) -->
+        <div class="w-full lg:w-[42%] flex flex-col gap-6">
+            
+            <!-- Dashboard Tab Panel Controller -->
+            <div class="bg-white p-1.5 rounded-xl border border-slate-200 flex gap-1 shadow-sm">
+                <button onclick="switchTab('registry')" id="btn-tab-registry" class="flex-1 py-2.5 px-4 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 flex items-center justify-center gap-2 bg-brand-600 text-white shadow-sm">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                    Tenant Registry
+                </button>
+                <button onclick="switchTab('create')" id="btn-tab-create" class="flex-1 py-2.5 px-4 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 flex items-center justify-center gap-2 text-slate-600 hover:text-slate-950 hover:bg-slate-100">
+                    <i data-lucide="plus-circle" class="w-4 h-4 text-brand-600"></i>
+                    Issue Receipt
+                </button>
+            </div>
+
+            <!-- TAB SECTION A: Registry and Management -->
+            <div id="section-registry" class="space-y-6">
+                
+                <!-- Add New Tenant Form Box -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                    <div class="flex items-center gap-2.5 mb-4">
+                        <div class="h-8 w-8 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i>
+                        </div>
+                        <h2 class="text-md font-bold text-slate-900">Add New Tenant Account</h2>
+                    </div>
+                    
+                    <form id="add-tenant-form" onsubmit="handleAddTenant(event)" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="col-span-2">
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="tenant-name">Full Tenant Name <span class="text-rose-500">*</span></label>
+                                <input type="text" id="tenant-name" required placeholder="e.g. Dr. Arthur Ssemwogerere" 
+                                    class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="tenant-phone">Phone Number <span class="text-rose-500">*</span></label>
+                                <input type="tel" id="tenant-phone" required placeholder="e.g. +256 772 123456" 
+                                    class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="tenant-email">Email Address</label>
+                                <input type="email" id="tenant-email" placeholder="e.g. arthur@domain.com" 
+                                    class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="tenant-unit">Unit / House No. <span class="text-rose-500">*</span></label>
+                                <input type="text" id="tenant-unit" required placeholder="e.g. Villa 14A" 
+                                    class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="tenant-rate">Expected Rent Rate <span class="text-rose-500">*</span></label>
+                                <div class="relative">
+                                    <input type="number" id="tenant-rate" required placeholder="e.g. 1500000" 
+                                        class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg pl-3 pr-12 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition">
+                                    <span class="absolute right-3.5 top-2.5 text-[10px] text-slate-400 font-bold uppercase">UGX</span>
+                                </div>
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="tenant-nin">National ID / NIN Number <span class="text-rose-500">*</span></label>
+                                <input type="text" id="tenant-nin" required placeholder="e.g. CM87023101ABCD" 
+                                    class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition uppercase">
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="tenant-due-day">Rent Monthly Due Day <span class="text-rose-500">*</span></label>
+                                <input type="number" id="tenant-due-day" min="1" max="31" required value="5" placeholder="e.g. 5" 
+                                    class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg px-3.5 py-2 text-sm text-slate-800 focus:outline-none transition">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="tenant-start-month">Rent Tracking Starts From <span class="text-rose-500">*</span></label>
+                                <input type="month" id="tenant-start-month" required
+                                    class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg px-3.5 py-2 text-sm text-slate-800 focus:outline-none transition">
+                                <p class="text-[10px] text-slate-400 mt-1">Overdue day counters start computing delays past your designated due day relative to this month.</p>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full mt-2 bg-brand-600 hover:bg-brand-500 text-white font-semibold py-2.5 px-4 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-sm shadow-brand-500/10">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            Register & Add Tenant
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Active Tenants Database Registry -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col flex-grow">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                        <div class="flex items-center gap-2.5">
+                            <div class="h-8 w-8 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600">
+                                <i data-lucide="users-2" class="w-4 h-4"></i>
+                            </div>
+                            <h2 class="text-md font-bold text-slate-900">Tenant Directory</h2>
+                        </div>
+                        <!-- Micro Search Box -->
+                        <div class="relative max-w-xs w-full sm:w-48">
+                            <input type="text" id="tenant-search" oninput="renderTenantRegistryList()" placeholder="Quick search..." 
+                                class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-700 placeholder-slate-400 focus:outline-none transition">
+                            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic scrollable list for active tenants -->
+                    <div class="max-h-[380px] overflow-y-auto space-y-3 pr-1" id="registry-list-container">
+                        <!-- Dynamic onboarding state placeholder -->
+                        <div class="text-center py-12 text-slate-400 flex flex-col items-center justify-center border-2 border-dashed border-slate-100 rounded-xl bg-slate-50/50">
+                            <i data-lucide="user-check" class="w-10 h-10 mb-2 text-slate-300"></i>
+                            <h3 class="font-bold text-slate-700 text-sm">No Tenants Registered Yet</h3>
+                            <p class="text-xs text-slate-500 px-6 mt-1 max-w-xs">Use the Form above to register a tenant. Once registered, they will appear here and you'll be able to track receipts or view their personal ledger history.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TAB SECTION B: Receipt Creation Hub -->
+            <div id="section-create" class="hidden space-y-6">
+                
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                    <div class="flex items-center gap-2.5 mb-4">
+                        <div class="h-8 w-8 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600">
+                            <i data-lucide="file-text" class="w-4 h-4"></i>
+                        </div>
+                        <h2 class="text-md font-bold text-slate-900">Configure Rent Receipt</h2>
+                    </div>
+
+                    <form id="generate-receipt-form" onsubmit="handleGenerateReceipt(event)" class="space-y-4">
+                        
+                        <!-- Tenant Target Selector -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="receipt-tenant-select">Select Tenant <span class="text-rose-500">*</span></label>
+                            <select id="receipt-tenant-select" onchange="onSelectTenantForReceipt()" required
+                                class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 rounded-lg px-3 py-2.5 text-sm text-slate-800 focus:outline-none transition">
+                                <option value="" disabled selected>-- Select Resident --</option>
+                            </select>
+                        </div>
+
+                        <!-- Grid properties -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="receipt-unit">House/Unit <span class="text-rose-500">*</span></label>
+                                <input type="text" id="receipt-unit" required placeholder="e.g. House 4B"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 text-sm text-slate-700 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="receipt-currency">Currency</label>
+                                <select id="receipt-currency" onchange="updateReceiptPreview()"
+                                    class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none transition">
+                                    <option value="UGX">UGX (Shillings)</option>
+                                    <option value="USD">USD (Dollars)</option>
+                                    <option value="KES">KES (Kenya Shillings)</option>
+                                    <option value="GBP">GBP (Pounds)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-span-2">
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="receipt-amount">Payment Amount Received <span class="text-rose-500">*</span></label>
+                                <div class="relative">
+                                    <input type="number" id="receipt-amount" required placeholder="Enter amount paid" oninput="updateReceiptPreview()"
+                                        class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg pl-4 pr-20 py-3 text-lg font-bold text-brand-900 placeholder-slate-400 focus:outline-none transition">
+                                    <span class="absolute right-3.5 top-3.5 text-xs text-brand-600 font-bold uppercase tracking-wider" id="amount-currency-label">UGX</span>
+                                </div>
+                            </div>
+
+                            <!-- Live calculations for portions / balance payments inside input section -->
+                            <div class="col-span-2 grid grid-cols-2 gap-3 bg-brand-50/40 p-3 rounded-xl border border-brand-100/70 text-xs">
+                                <div>
+                                    <span class="text-slate-500 font-semibold block mb-0.5">Tenant Registered Rent:</span>
+                                    <span class="font-bold text-slate-800 text-sm" id="form-calc-expected">0 UGX</span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-500 font-semibold block mb-0.5">Remaining Balance:</span>
+                                    <span class="font-black text-rose-600 text-sm" id="form-calc-balance">0 UGX</span>
+                                </div>
+                            </div>
+
+                            <div class="col-span-2">
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1">Receipt Text Preview (Amount In Words):</label>
+                                <div id="amount-words-preview" class="text-xs italic text-brand-700 bg-brand-50/50 p-2.5 rounded-lg border border-brand-100 min-h-[36px] flex items-center">
+                                    Zero shillings only.
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="receipt-period-picker">Billing Period <span class="text-rose-500">*</span></label>
+                                <input type="month" id="receipt-period-picker" required onchange="onReceiptMonthChange()"
+                                    class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg px-3.5 py-2 text-sm text-slate-800 focus:outline-none transition">
+                                <input type="hidden" id="receipt-period">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="receipt-date">Receipt Date</label>
+                                <input type="date" id="receipt-date" onchange="updateReceiptPreview()"
+                                    class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg px-3.5 py-2 text-sm text-slate-800 focus:outline-none transition">
+                            </div>
+
+                            <!-- Payment Channel Select to render dynamic transaction fields -->
+                            <div class="col-span-2">
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="receipt-method">Payment Method</label>
+                                <select id="receipt-method" onchange="onPaymentMethodChange()"
+                                    class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none transition">
+                                    <option value="Mobile Money">Mobile Money (MTN MoMo / Airtel Money)</option>
+                                    <option value="Bank Transfer">Direct Bank Wire / EFT</option>
+                                    <option value="Cash">Cash Payment</option>
+                                    <option value="Cheque">Bank Cheque</option>
+                                </select>
+                            </div>
+
+                            <!-- DYNAMIC ELEMENT: Transaction Reference ID (Highlighted specifically for Mobile Money payments) -->
+                            <div class="col-span-2" id="tx-wrapper">
+                                <label class="block text-[11px] font-bold text-blue-700 uppercase tracking-wide mb-1 flex items-center gap-1.5" for="receipt-ref">
+                                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping"></span>
+                                    Mobile Money Transaction ID / TxID <span class="text-rose-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <input type="text" id="receipt-ref" required placeholder="e.g. PP260601.1204.C0012" oninput="updateReceiptPreview()"
+                                        class="w-full bg-blue-50/50 border border-blue-200 focus:border-brand-600 focus:bg-white rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-800 placeholder-blue-300 focus:outline-none transition">
+                                    <i data-lucide="smartphone" class="w-4 h-4 text-blue-500 absolute left-3.5 top-3.5"></i>
+                                </div>
+                                <p class="text-[10px] text-blue-500 mt-1">Please transcribe the exact network transaction code to ensure auditing validity.</p>
+                            </div>
+                        </div>
+
+                        <!-- Printing custom configurations toggles -->
+                        <div class="border-t border-slate-100 pt-4 flex flex-col gap-2">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="receipt-include-stamp" checked onchange="updateReceiptPreview()" 
+                                    class="rounded bg-slate-50 border-slate-200 text-brand-600 focus:ring-brand-500 h-4 w-4">
+                                <label for="receipt-include-stamp" class="text-xs text-slate-600">Affix "PAID" official stamp verification</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="receipt-include-sig" checked onchange="updateReceiptPreview()" 
+                                    class="rounded bg-slate-50 border-slate-200 text-brand-600 focus:ring-brand-500 h-4 w-4">
+                                <label for="receipt-include-sig" class="text-xs text-slate-600">Include management representative digital signature</label>
+                            </div>
+                        </div>
+
+                        <!-- Operations Actions -->
+                        <div class="flex gap-3 pt-2">
+                            <button type="button" onclick="resetReceiptForm()" class="flex-1 border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-semibold py-2.5 px-4 rounded-xl transition">
+                                Reset
+                            </button>
+                            <button type="submit" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-sm shadow-brand-500/20">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                Save & Generate
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- System General Logs -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-3.5">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="history" class="w-4 h-4 text-brand-600"></i>
+                        <h3 class="font-bold text-sm text-slate-800">Historical Archive Logs</h3>
+                    </div>
+                    <span id="receipt-count-badge" class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">0 entries</span>
+                </div>
+                <div class="max-h-[180px] overflow-y-auto space-y-2 pr-1" id="receipt-log-container">
+                    <p class="text-xs text-center text-slate-400 py-6">No historical records saved in this database session.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Interactive Canvas & Printing Area -->
+        <div class="w-full lg:w-[58%] flex flex-col gap-5">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 border border-slate-200 rounded-2xl shadow-sm">
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
+                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Dynamic Preview Canvas</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="downloadAsPDF()" class="bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-md shadow-brand-500/10">
+                        <i data-lucide="file-down" class="w-4 h-4"></i>
+                        Download PDF
+                    </button>
+                    <button onclick="window.print()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-1.5">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        System Print
+                    </button>
+                </div>
+            </div>
+
+            <!-- Aspect-ratio containment wrapper for receipt paper modeling -->
+            <div class="overflow-x-auto bg-slate-100 border border-slate-200 rounded-2xl p-6 shadow-inner flex justify-center items-center">
+                
+                <!-- PRINT BLOCK: The A5 Landscape Paper Sheet Mock (High Contrast Blue/White Theme, Logo-Free) -->
+                <div id="print-target" class="receipt-container border-8 border-brand-800 p-6 flex flex-col justify-between shadow-lg text-slate-800 font-sans relative">
+                    
+                    <!-- Inner design decorative border standard -->
+                    <div class="absolute inset-1 border border-brand-100 pointer-events-none"></div>
+                    
+                    <!-- Classical brand Watermark in Center -->
+                    <div class="receipt-watermark font-serif select-none">KULUBYA ESTATES</div>
+
+                    <!-- Header Segment: Typographical Branding & Dynamic Metadata -->
+                    <div class="relative z-10 flex justify-between items-start border-b-2 border-slate-100 pb-3">
+                        <div>
+                            <!-- Classically structured corporate typography - No graphical logo as explicitly requested -->
+                            <h2 class="font-serif text-2xl font-extrabold text-brand-900 tracking-wide">KULUBYA ESTATES</h2>
+                            <p class="text-[9px] text-brand-600 font-bold tracking-widest uppercase mt-0.5">High-Class Residential & Commercial Management</p>
+                            <p class="text-[9px] text-slate-500 mt-1 font-medium leading-relaxed">
+                                Kibiri B<br>
+                                Telephone Contact: 0776026769 &nbsp;|&nbsp; 0705482876 &nbsp;|&nbsp; 0776805304
+                            </p>
+                        </div>
+                        
+                        <div class="text-right">
+                            <span class="inline-block bg-brand-900 text-white font-serif italic font-bold tracking-widest text-[11px] px-3.5 py-1.5 rounded">
+                                RENT RECEIPT
+                            </span>
+                            <div class="text-[11px] text-slate-500 space-y-0.5 mt-2">
+                                <div>Receipt No: <strong class="text-brand-900 font-bold" id="rec-no">KE-2026-0000</strong></div>
+                                <div>Date: <strong class="text-slate-800" id="rec-date">--/--/----</strong></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Middle Segment: Fill-ins Layout mimicking a traditional layout -->
+                    <div class="relative z-10 grid grid-cols-12 gap-y-2.5 text-xs py-3 my-auto border-b border-dashed border-slate-200">
+                        
+                        <!-- Tenant details row -->
+                        <div class="col-span-12 flex items-baseline gap-2">
+                            <span class="text-slate-500 font-bold uppercase text-[9px] tracking-wide w-36 shrink-0">Received With Thanks From:</span>
+                            <span class="border-b border-slate-300 font-bold text-slate-950 text-sm grow pb-0.5 px-1 italic" id="rec-tenant-name">--------------------------------</span>
+                        </div>
+
+                        <!-- Absolute sums in written words -->
+                        <div class="col-span-12 flex items-baseline gap-2">
+                            <span class="text-slate-500 font-bold uppercase text-[9px] tracking-wide w-36 shrink-0">The Sum of (In Words):</span>
+                            <span class="border-b border-slate-300 font-serif italic text-slate-700 grow pb-0.5 px-1 leading-relaxed text-[11px]" id="rec-amount-words">Zero Shillings Only</span>
+                        </div>
+
+                        <!-- Real estate unit identifier and dates tracker -->
+                        <div class="col-span-12 grid grid-cols-2 gap-4">
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-slate-500 font-bold uppercase text-[9px] tracking-wide w-36 shrink-0">Being Rent Payment For:</span>
+                                <span class="border-b border-slate-300 font-bold text-slate-900 grow pb-0.5 px-1" id="rec-unit-no">----------</span>
+                            </div>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-slate-500 font-bold uppercase text-[9px] tracking-wide w-20 shrink-0">For Period:</span>
+                                <span class="border-b border-slate-300 font-bold text-slate-900 grow pb-0.5 px-1" id="rec-period">----------</span>
+                            </div>
+                        </div>
+
+                        <!-- Payment metadata reference -->
+                        <div class="col-span-12 grid grid-cols-2 gap-4">
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-slate-500 font-bold uppercase text-[9px] tracking-wide w-36 shrink-0">Method of Payment:</span>
+                                <span class="border-b border-slate-300 font-semibold text-slate-800 grow pb-0.5 px-1" id="rec-method">----------</span>
+                            </div>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-slate-500 font-bold uppercase text-[9px] tracking-wide w-20 shrink-0">Ref / TxID:</span>
+                                <span class="border-b border-slate-300 font-mono text-brand-900 font-semibold grow pb-0.5 px-1" id="rec-ref">----------</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Segment: Multi-tier Ledger Sums, official verification stamp, authorization block -->
+                    <div class="relative z-10 flex justify-between items-end pt-2">
+                        
+                        <!-- Premium Portion Ledger Block -->
+                        <div class="flex items-center gap-1.5">
+                            <div class="border border-brand-200 bg-white rounded divide-y divide-brand-100 overflow-hidden flex flex-col text-[10px] w-52 shadow-sm">
+                                <div class="px-2.5 py-1 flex justify-between bg-slate-50">
+                                    <span class="text-slate-500 font-semibold">Expected Rent:</span>
+                                    <span class="font-bold text-slate-700"><span class="rec-currency-symbol">UGX</span> <span id="rec-rate-val">0</span></span>
+                                </div>
+                                <div class="px-2.5 py-1.5 flex justify-between bg-brand-50/50">
+                                    <span class="text-brand-800 font-bold">Amount Paid:</span>
+                                    <span class="font-black text-brand-950 text-xs"><span class="rec-currency-symbol">UGX</span> <span id="rec-amount-val">0</span></span>
+                                </div>
+                                <div class="px-2.5 py-1 flex justify-between bg-rose-50/40" id="rec-balance-wrapper">
+                                    <span class="text-rose-700 font-bold">Remaining Balance:</span>
+                                    <span class="font-black text-rose-600"><span class="rec-currency-symbol">UGX</span> <span id="rec-balance-val">0</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Deep blue stamp visual representation -->
+                        <div id="rec-stamp-wrapper" class="flex justify-center items-center h-full pb-1 transition duration-150">
+                            <div class="paid-stamp border-4 rounded-lg px-3.5 py-1 text-center font-black select-none opacity-90 text-sm">
+                                PAID<br>
+                                <span class="text-[8px] tracking-normal font-sans font-bold" id="stamp-date-val">--/--/----</span>
+                            </div>
+                        </div>
+
+                        <!-- Signature panel block - Formatted with authorized representative name 'Nampiima Hasifah' -->
+                        <div class="text-center w-52 relative">
+                            <!-- Premium Representative Autograph Name Layout -->
+                            <div class="h-10 relative flex justify-center items-end mb-1" id="rec-sig-line">
+                                <span class="font-serif italic text-brand-700 text-sm font-extrabold tracking-wide absolute bottom-1.5 rotate-[-2deg]" style="font-family: 'Playfair Display', serif;">
+                                    Nampiima Hasifah
+                                </span>
+                            </div>
+                            <div class="border-t border-slate-300 pt-1">
+                                <p class="text-[9px] font-bold text-brand-900 uppercase tracking-wider">Nampiima Hasifah</p>
+                                <p class="text-[8px] text-slate-500 mt-0.5">Authorized Estate Representative</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom system tips banner -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex gap-3 text-xs text-slate-600 shadow-sm">
+                <i data-lucide="info" class="w-5 h-5 text-brand-600 shrink-0 mt-0.5"></i>
+                <div class="space-y-1">
+                    <p class="font-bold text-slate-900">Important System Instructions:</p>
+                    <p class="leading-relaxed">To print cleanly on standard receipt machines, select "Download PDF" to trigger an automated print layout container formatted directly to international ISO A5 landscape dimensions.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- App Bottom Footer -->
+    <footer class="mt-auto border-t border-slate-200 bg-white py-5 px-6 text-center text-xs text-slate-500">
+        <p>© 2026 Kulubya Estates Management Core. All tenant financial logs are archived on encrypted local ledger states.</p>
+    </footer>
+
+    <script>
+        // Core Web-app Reactive State variables
+        let state = {
+            tenants: [],      // Dynamic tenant profiles
+            receipts: [],     // Dynamic globally issued receipts ledger
+            selectedTenantId: null,
+            currentTab: 'registry',
+            receiptCounter: 1,
+            // Custom modal parameters
+            modalTargetId: null,
+            modalTargetType: null // 'tenant' or 'receipt'
+        };
+
+        // Cache elements on DOM
+        const sectionRegistry = document.getElementById('section-registry');
+        const sectionCreate = document.getElementById('section-create');
+        const btnTabRegistry = document.getElementById('btn-tab-registry');
+        const btnTabCreate = document.getElementById('btn-tab-create');
+
+        window.onload = function() {
+            // Instantiate Lucide vector assets
+            lucide.createIcons();
+            
+            // Auto initialize the receipt creator date control to the present day
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('receipt-date').value = today;
+
+            // Initialize default dates inside the registration form to current month
+            const currentYearMonth = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+            if (document.getElementById('tenant-start-month')) {
+                document.getElementById('tenant-start-month').value = currentYearMonth;
+            }
+            if (document.getElementById('receipt-period-picker')) {
+                document.getElementById('receipt-period-picker').value = currentYearMonth;
+                document.getElementById('receipt-period').value = formatYearMonthToReadable(currentYearMonth);
+            }
+
+            // Recover persistent browser states
+            loadLocalStorageData();
+
+            // Refresh Dynamic counters
+            updateDynamicStats();
+
+            // Perform dynamic validation layout check on payment method dropdown
+            onPaymentMethodChange();
+
+            // Initialize preview graphics
+            updateReceiptPreview();
+        };
+
+        // Translate month string (2026-06) into readable receipt text format
+        function formatYearMonthToReadable(ym) {
+            if (!ym) return "";
+            const [year, month] = ym.split('-');
+            const date = new Date(year, parseInt(month) - 1, 1);
+            return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+        }
+
+        // Convert day number into ordinal suffix text (e.g. 5th, 1st, 2nd)
+        function getOrdinalSuffix(i) {
+            var j = i % 10, k = i % 100;
+            if (j == 1 && k != 11) { return "st"; }
+            if (j == 2 && k != 12) { return "nd"; }
+            if (j == 3 && k != 13) { return "rd"; }
+            return "th";
+        }
+
+        // Dynamically compute days exceeded without payment for any tenant profile
+        function calculateOverdueDays(tenant) {
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            // Map of all paid billing periods for this unique tenant profile
+            const paidMonths = new Set(
+                state.receipts
+                    .filter(r => r.tenantId === tenant.id)
+                    .map(r => r.billingMonth) // format: "YYYY-MM"
+            );
+            
+            let trackingCursor = tenant.startMonth; // format: "YYYY-MM"
+            if (!trackingCursor) return 0;
+
+            const todayYearMonth = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, '0');
+            
+            let checkDate = new Date(trackingCursor + "-01");
+            const endDate = new Date(todayYearMonth + "-01");
+            
+            let oldestUnpaidDueDate = null;
+            
+            // Iterate months sequentially to discover the oldest unpaid month
+            while (checkDate <= endDate) {
+                const year = checkDate.getFullYear();
+                const month = String(checkDate.getMonth() + 1).padStart(2, '0');
+                const ymString = `${year}-${month}`;
+                
+                if (!paidMonths.has(ymString)) {
+                    // Identify the due day boundary (handle cases where months are short)
+                    const limitDay = Math.min(tenant.dueDay, new Date(year, checkDate.getMonth() + 1, 0).getDate());
+                    const dueDate = new Date(year, checkDate.getMonth(), limitDay);
+                    dueDate.setHours(0,0,0,0);
+                    
+                    if (today > dueDate) {
+                        oldestUnpaidDueDate = dueDate;
+                        break; // Stop at the oldest unpaid cycle to begin the count-up boundary
+                    }
+                }
+                
+                // Move step cursor forward to next calendar month
+                checkDate.setMonth(checkDate.getMonth() + 1);
+            }
+            
+            if (oldestUnpaidDueDate) {
+                const diffTime = today - oldestUnpaidDueDate;
+                return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            }
+            
+            return 0;
+        }
+
+        // Helper: Find first unpaid month to automate and direct user action
+        function getFirstUnpaidMonth(tenant) {
+            const paidMonths = new Set(
+                state.receipts
+                    .filter(r => r.tenantId === tenant.id)
+                    .map(r => r.billingMonth)
+            );
+            
+            const startStr = tenant.startMonth || new Date().toISOString().slice(0, 7);
+            const today = new Date();
+            const todayYM = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, '0');
+            
+            let checkDate = new Date(startStr + "-01");
+            const endDate = new Date(todayYM + "-01");
+            
+            while (checkDate <= endDate) {
+                const ym = checkDate.getFullYear() + "-" + String(checkDate.getMonth() + 1).padStart(2, '0');
+                if (!paidMonths.has(ym)) {
+                    return ym;
+                }
+                checkDate.setMonth(checkDate.getMonth() + 1);
+            }
+            
+            return todayYM;
+        }
+
+        // Trigger on receipt month input changes
+        function onReceiptMonthChange() {
+            const val = document.getElementById('receipt-period-picker').value;
+            document.getElementById('receipt-period').value = formatYearMonthToReadable(val);
+            updateReceiptPreview();
+        }
+
+        // Unified safe delete modal dialog functions (eliminates standard blocking browser alert/confirm prompts)
+        function triggerCustomDeleteModal(targetId, targetType, targetName) {
+            state.modalTargetId = targetId;
+            state.modalTargetType = targetType;
+            
+            const titleEl = document.getElementById('delete-modal-title');
+            const descEl = document.getElementById('delete-modal-description');
+            
+            if (targetType === 'tenant') {
+                titleEl.innerText = "Delete Tenant Profile?";
+                descEl.innerHTML = `Are you sure you want to permanently delete tenant <strong class="text-slate-900">${targetName}</strong>? This action will purge all registered rent rates and clean all associated transaction logs instantly.`;
+            } else if (targetType === 'receipt') {
+                titleEl.innerText = "Remove Receipt Record?";
+                descEl.innerHTML = `Are you sure you want to delete transaction ledger <strong class="text-slate-900">${targetName}</strong> from active history? The outstanding balances of the tenant will recalculate.`;
+            }
+
+            const modal = document.getElementById('delete-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // Close dynamic overlays
+        function closeDeleteModal() {
+            const modal = document.getElementById('delete-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            state.modalTargetId = null;
+            state.modalTargetType = null;
+        }
+
+        function confirmSystemDeletion() {
+            const id = state.modalTargetId;
+            const type = state.modalTargetType;
+            
+            if (!id || !type) {
+                closeDeleteModal();
+                return;
+            }
+
+            if (type === 'tenant') {
+                const targetTenant = state.tenants.find(t => t.id === id);
+                const tenantName = targetTenant ? targetTenant.name : "Resident";
+
+                // Purge Tenant from Memory state arrays
+                state.tenants = state.tenants.filter(t => t.id !== id);
+                state.receipts = state.receipts.filter(r => r.tenantId !== id);
+                
+                saveStateToDisk();
+                showToast(`Deleted ${tenantName} and all associated ledger records successfully!`, 'success');
+            } else if (type === 'receipt') {
+                const targetReceipt = state.receipts.find(r => r.id === id);
+                const recNum = targetReceipt ? targetReceipt.receiptNumber : "Receipt";
+
+                // Purge Receipt
+                state.receipts = state.receipts.filter(r => r.id !== id);
+                
+                saveStateToDisk();
+                showToast(`Removed receipt ${recNum} successfully from system logs.`, 'success');
+            }
+
+            closeDeleteModal();
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `flex items-center gap-3 px-4 py-3.5 rounded-xl shadow-lg border transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto w-full ${
+                type === 'success' 
+                    ? 'bg-blue-50 border-blue-200 text-blue-900' 
+                    : 'bg-rose-50 border-rose-200 text-rose-900'
+            }`;
+            
+            const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+            toast.innerHTML = `
+                <div class="shrink-0 text-blue-600 ${type !== 'success' ? 'text-rose-600' : ''}">
+                    <i data-lucide="${icon}" class="w-5 h-5"></i>
+                </div>
+                <span class="text-xs font-semibold leading-normal">${message}</span>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            // CSS Animation Transition trigger
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            // De-spawn trigger
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function switchTab(tabId) {
+            state.currentTab = tabId;
+            if (tabId === 'registry') {
+                sectionRegistry.classList.remove('hidden');
+                sectionCreate.classList.add('hidden');
+                btnTabRegistry.className = "flex-1 py-2.5 px-4 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 flex items-center justify-center gap-2 bg-brand-600 text-white shadow-sm";
+                btnTabCreate.className = "flex-1 py-2.5 px-4 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 flex items-center justify-center gap-2 text-slate-600 hover:text-slate-950 hover:bg-slate-100";
+            } else {
+                sectionRegistry.classList.add('hidden');
+                sectionCreate.classList.remove('hidden');
+                btnTabCreate.className = "flex-1 py-2.5 px-4 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 flex items-center justify-center gap-2 bg-brand-600 text-white shadow-sm";
+                btnTabRegistry.className = "flex-1 py-2.5 px-4 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 flex items-center justify-center gap-2 text-slate-600 hover:text-slate-950 hover:bg-slate-100";
+            }
+        }
+
+        function loadLocalStorageData() {
+            try {
+                const rawTenants = localStorage.getItem('ke_v2_tenants');
+                const rawReceipts = localStorage.getItem('ke_v2_receipts');
+                const rawCounter = localStorage.getItem('ke_v2_counter');
+
+                // If nothing is present, start with completely clean/empty lists
+                state.tenants = rawTenants ? JSON.parse(rawTenants) : [];
+                state.receipts = rawReceipts ? JSON.parse(rawReceipts) : [];
+                state.receiptCounter = rawCounter ? parseInt(rawCounter) : 1;
+
+                // Sync data structures to UI controls
+                renderTenantRegistryList();
+                populateTenantDropdown();
+                renderGeneralReceiptLogs();
+            } catch (err) {
+                console.error("Local database read error:", err);
+                showToast("System failed to read persistent local storage parameters.", "error");
+            }
+        }
+
+        function saveStateToDisk() {
+            try {
+                localStorage.setItem('ke_v2_tenants', JSON.stringify(state.tenants));
+                localStorage.setItem('ke_v2_receipts', JSON.stringify(state.receipts));
+                localStorage.setItem('ke_v2_counter', state.receiptCounter.toString());
+                
+                // Re-render UI segments
+                renderTenantRegistryList();
+                populateTenantDropdown();
+                renderGeneralReceiptLogs();
+                updateDynamicStats();
+            } catch (err) {
+                console.error("Local database save error:", err);
+                showToast("Persistent local save operation failure occurred.", "error");
+            }
+        }
+
+        function updateDynamicStats() {
+            document.getElementById('stat-tenant-count').innerText = state.tenants.length;
+            document.getElementById('stat-receipt-count').innerText = state.receipts.length;
+            document.getElementById('receipt-count-badge').innerText = `${state.receipts.length} entries`;
+        }
+
+        function numberToWords(amount, currencyCode = 'UGX') {
+            const th = ['', 'thousand', 'million', 'billion', 'trillion'];
+            const dg = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+            const tn = ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+            const tw = ['twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+
+            function convertInteger(number) {
+                let n = number.toString().replace(/[, ]/g, '');
+                if (n != parseFloat(n)) return 'not a number';
+                let x = n.indexOf('.');
+                if (x == -1) x = n.length;
+                if (x > 15) return 'too big';
+                let r = '';
+                let d = 0;
+                for (let i = 0; i < x; i++) {
+                    if ((x - i) % 3 == 2) {
+                        if (n[i] == '1') {
+                            r += tn[Number(n[i + 1])] + ' ';
+                            i++;
+                            d = 1;
+                        } else if (n[i] != 0) {
+                            r += tw[n[i] - 2] + ' ';
+                            d = 1;
+                        }
+                    } else if (n[i] != 0) {
+                        r += dg[n[i]] + ' ';
+                        if ((x - i) % 3 == 0) r += 'hundred ';
+                        d = 1;
+                    }
+                    if ((x - i) % 3 == 1) {
+                        if (d) r += th[(x - i - 1) / 3] + ' ';
+                        d = 0;
+                    }
+                }
+                return r.trim();
+            }
+
+            const num = Math.floor(Math.abs(amount));
+            if (num === 0) {
+                return `Zero ${getCurrencyNameSuffix(currencyCode)}`;
+            }
+
+            const rawWords = convertInteger(num);
+            const polishedCapitalized = rawWords.replace(/(^\w|\s\w)/g, m => m.toUpperCase());
+            
+            return `${polishedCapitalized} ${getCurrencyNameSuffix(currencyCode)}`;
+        }
+
+        function getCurrencyNameSuffix(code) {
+            switch(code) {
+                case 'UGX': return 'Shillings Only';
+                case 'USD': return 'Dollars Only';
+                case 'KES': return 'Kenya Shillings Only';
+                case 'GBP': return 'Pounds Sterling Only';
+                default: return 'Only';
+            }
+        }
+
+        function formatFinancialFigure(num) {
+            return parseFloat(num).toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function handleAddTenant(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('tenant-name').value.trim();
+            const phone = document.getElementById('tenant-phone').value.trim();
+            const email = document.getElementById('tenant-email').value.trim();
+            const unit = document.getElementById('tenant-unit').value.trim();
+            const rateInput = document.getElementById('tenant-rate').value;
+            const rate = rateInput ? parseInt(rateInput) : 0;
+            const nin = document.getElementById('tenant-nin').value.trim().toUpperCase();
+            const dueDay = parseInt(document.getElementById('tenant-due-day').value) || 5;
+            const startMonth = document.getElementById('tenant-start-month').value || new Date().toISOString().slice(0, 7);
+
+            const newTenantRecord = {
+                id: 't-' + Date.now() + Math.random().toString(36).substring(2, 5),
+                name,
+                phone,
+                email: email || 'N/A',
+                unit,
+                rate,
+                nin,
+                dueDay,
+                startMonth
+            };
+
+            state.tenants.unshift(newTenantRecord);
+            saveStateToDisk();
+            
+            document.getElementById('add-tenant-form').reset();
+            // Re-apply default dates post-reset
+            const currentYearMonth = new Date().toISOString().slice(0, 7);
+            document.getElementById('tenant-start-month').value = currentYearMonth;
+            
+            showToast(`Registered Account for ${name} under Unit ${unit} successfully!`, 'success');
+        }
+
+        // Expanded view toggler to show specific transaction history
+        function toggleTenantHistoryDrawer(tenantId) {
+            const drawer = document.getElementById(`history-drawer-${tenantId}`);
+            const icon = document.getElementById(`history-chevron-${tenantId}`);
+            
+            if (drawer.classList.contains('hidden')) {
+                drawer.classList.remove('hidden');
+                if (icon) icon.style.transform = 'rotate(180deg)';
+                renderTenantLocalHistory(tenantId);
+            } else {
+                drawer.classList.add('hidden');
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Render localized history list for a unique tenant profile
+        function renderTenantLocalHistory(tenantId) {
+            const historyContainer = document.getElementById(`history-items-${tenantId}`);
+            const tenantReceipts = state.receipts.filter(r => r.tenantId === tenantId);
+
+            if (tenantReceipts.length === 0) {
+                historyContainer.innerHTML = `
+                    <div class="text-[11px] text-slate-400 py-3 text-center bg-slate-50 rounded-lg border border-dashed border-slate-150">
+                        No transactions registered for this account.
+                    </div>
+                `;
+                return;
+            }
+
+            historyContainer.innerHTML = tenantReceipts.map(rec => `
+                <div class="flex items-center justify-between p-2 bg-slate-50 border border-slate-200/60 rounded-lg text-xs">
+                    <div class="space-y-0.5">
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-bold text-brand-700">${rec.receiptNumber}</span>
+                            <span class="text-[9px] px-1.5 py-0.2 rounded bg-brand-50 text-brand-600 font-semibold uppercase tracking-wider">${rec.period}</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400">Date: ${rec.date} via ${rec.method}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <strong class="text-slate-900 font-semibold">${formatFinancialFigure(rec.amount)} ${rec.currency}</strong>
+                        <button onclick="loadReceiptToCanvas('${rec.id}')" title="Preview receipt on Canvas" class="p-1 bg-white hover:bg-brand-50 text-brand-600 hover:text-brand-700 border border-slate-200 rounded-md transition">
+                            <i data-lucide="eye" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        // Quick shortcut to generate receipt for a tenant
+        function triggerImmediateReceiptGeneration(tenantId) {
+            switchTab('create');
+            const dropdown = document.getElementById('receipt-tenant-select');
+            dropdown.value = tenantId;
+            onSelectTenantForReceipt();
+        }
+
+        function renderTenantRegistryList() {
+            const container = document.getElementById('registry-list-container');
+            const searchVal = document.getElementById('tenant-search').value.toLowerCase();
+            
+            const filtered = state.tenants.filter(t => 
+                t.name.toLowerCase().includes(searchVal) || 
+                t.unit.toLowerCase().includes(searchVal) ||
+                t.phone.includes(searchVal) ||
+                (t.nin && t.nin.toLowerCase().includes(searchVal))
+            );
+
+            if (state.tenants.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400 flex flex-col items-center justify-center border-2 border-dashed border-slate-100 rounded-xl bg-slate-50/50">
+                        <i data-lucide="user-plus" class="w-10 h-10 mb-2 text-slate-300"></i>
+                        <h3 class="font-bold text-slate-700 text-sm">No Tenants Registered Yet</h3>
+                        <p class="text-xs text-slate-500 px-6 mt-1 max-w-xs">Use the form above to add an account to the directory.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <i data-lucide="search" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
+                        <p class="text-xs font-semibold">No registry match found for your search term.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = filtered.map(t => {
+                // Compute summary stats for the tenant card header
+                const tenantReceipts = state.receipts.filter(r => r.tenantId === t.id);
+                const totalPaid = tenantReceipts.reduce((sum, r) => sum + r.amount, 0);
+                
+                // Overdue status meter calculation
+                const overdueDays = calculateOverdueDays(t);
+                let overdueBadgeHTML = '';
+                let cardAlertStyle = 'border-slate-200';
+                
+                if (overdueDays > 0) {
+                    cardAlertStyle = 'border-red-200 overdue-pulse bg-red-50/10';
+                    overdueBadgeHTML = `
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 border border-rose-200 text-rose-600 animate-pulse">
+                            <span class="h-2 w-2 rounded-full bg-rose-600 animate-ping"></span>
+                            Overdue: ${overdueDays} Day${overdueDays > 1 ? 's' : ''}
+                        </span>
+                    `;
+                } else {
+                    overdueBadgeHTML = `
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 border border-emerald-100 text-emerald-600">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                            Paid up
+                        </span>
+                    `;
+                }
+
+                return `
+                    <div class="bg-white hover:border-slate-300 border p-4 rounded-xl transition shadow-sm space-y-3 ${cardAlertStyle}">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h4 class="font-bold text-slate-900 text-sm">${t.name}</h4>
+                                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold border border-slate-200">${t.unit}</span>
+                                </div>
+                                <div class="flex flex-col gap-1 text-xs text-slate-500 pt-1">
+                                    <span class="flex items-center gap-1.5"><i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400"></i> ${t.phone}</span>
+                                    <span class="flex items-center gap-1.5"><i data-lucide="fingerprint" class="w-3.5 h-3.5 text-slate-400"></i> NIN: <span class="font-mono text-slate-700 font-bold">${t.nin || 'N/A'}</span></span>
+                                    <span class="flex items-center gap-1.5"><i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i> Due Date: <span class="text-slate-700 font-bold">${t.dueDay}${getOrdinalSuffix(t.dueDay)} of month</span></span>
+                                    ${t.rate ? `<span class="flex items-center gap-1.5"><i data-lucide="coins" class="w-3.5 h-3.5 text-slate-400"></i> Expected Rate: ${formatFinancialFigure(t.rate)} UGX</span>` : ''}
+                                </div>
+                            </div>
+                            
+                            <!-- Control Quick Buttons -->
+                            <div class="flex flex-col items-end gap-2 shrink-0">
+                                ${overdueBadgeHTML}
+                                <div class="flex items-center gap-1.5 mt-1">
+                                    <button onclick="triggerImmediateReceiptGeneration('${t.id}')" title="Generate Receipt" class="p-2 rounded-lg bg-brand-50 hover:bg-brand-600 text-brand-600 hover:text-white transition border border-brand-100">
+                                        <i data-lucide="file-plus" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="triggerCustomDeleteModal('${t.id}', 'tenant', '${t.name.replace(/'/g, "\\'")}')" title="Purge Tenant" class="p-2 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition border border-red-100">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Accordion Transaction History Header Trigger -->
+                        <div class="border-t border-slate-100 pt-3 flex items-center justify-between">
+                            <button onclick="toggleTenantHistoryDrawer('${t.id}')" class="flex items-center gap-1.5 text-[11px] font-bold text-brand-600 hover:text-brand-700 transition">
+                                <i data-lucide="chevron-down" id="history-chevron-${t.id}" class="w-3.5 h-3.5 transition duration-150"></i>
+                                Transaction History (${tenantReceipts.length})
+                            </button>
+                            <span class="text-[10px] text-slate-400">Total Collected: <strong class="text-slate-700">${formatFinancialFigure(totalPaid)} UGX</strong></span>
+                        </div>
+
+                        <!-- Expandable localized ledger container -->
+                        <div id="history-drawer-${t.id}" class="hidden pt-2 border-t border-dashed border-slate-100 space-y-2">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Archived Invoices Ledger</div>
+                            <div id="history-items-${t.id}" class="space-y-1.5 max-h-[160px] overflow-y-auto">
+                                <!-- Populated on expand -->
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            lucide.createIcons();
+        }
+
+        function populateTenantDropdown() {
+            const dropdown = document.getElementById('receipt-tenant-select');
+            const currentlySelected = dropdown.value;
+
+            dropdown.innerHTML = `<option value="" disabled selected>-- Select Resident --</option>` + 
+                state.tenants.map(t => `
+                    <option value="${t.id}">${t.name} (${t.unit})</option>
+                `).join('');
+
+            // Restore selection state
+            if (currentlySelected && state.tenants.some(t => t.id === currentlySelected)) {
+                dropdown.value = currentlySelected;
+            }
+        }
+
+        function onPaymentMethodChange() {
+            const method = document.getElementById('receipt-method').value;
+            const refField = document.getElementById('receipt-ref');
+            const wrapper = document.getElementById('tx-wrapper');
+
+            // Render dynamic context and requirements based on payment channel
+            if (method === 'Mobile Money') {
+                wrapper.innerHTML = `
+                    <label class="block text-[11px] font-bold text-blue-700 uppercase tracking-wide mb-1 flex items-center gap-1.5" for="receipt-ref">
+                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                        Mobile Money Transaction ID / TxID <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="receipt-ref" required placeholder="e.g. PP260601.1204.C0012" oninput="updateReceiptPreview()"
+                            class="w-full bg-blue-50/50 border border-blue-200 focus:border-brand-600 focus:bg-white rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-800 placeholder-blue-300 focus:outline-none transition">
+                        <i data-lucide="smartphone" class="w-4 h-4 text-blue-500 absolute left-3.5 top-3.5"></i>
+                    </div>
+                    <p class="text-[10px] text-blue-500 mt-1">Please transcribe the exact network transaction code to ensure auditing validity.</p>
+                `;
+            } else if (method === 'Bank Transfer') {
+                wrapper.innerHTML = `
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="receipt-ref">Bank Wire Reference / Narration <span class="text-rose-500">*</span></label>
+                    <div class="relative">
+                        <input type="text" id="receipt-ref" required placeholder="e.g. FT-998-KULUBYA" oninput="updateReceiptPreview()"
+                            class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition">
+                        <i data-lucide="building" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+                    </div>
+                `;
+            } else if (method === 'Cheque') {
+                wrapper.innerHTML = `
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1" for="receipt-ref">Bank Cheque Serial No. <span class="text-rose-500">*</span></label>
+                    <div class="relative">
+                        <input type="text" id="receipt-ref" required placeholder="e.g. CHQ-0012093" oninput="updateReceiptPreview()"
+                            class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition">
+                        <i data-lucide="book-open" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+                    </div>
+                `;
+            } else {
+                wrapper.innerHTML = `
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1" for="receipt-ref">Handwritten Receipt Serial / Ref (Optional)</label>
+                    <div class="relative">
+                        <input type="text" id="receipt-ref" placeholder="e.g. CASH-101" oninput="updateReceiptPreview()"
+                            class="w-full bg-slate-50 border border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition">
+                        <i data-lucide="wallet" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+                    </div>
+                `;
+            }
+            lucide.createIcons();
+            updateReceiptPreview();
+        }
+
+        function onSelectTenantForReceipt() {
+            const targetId = document.getElementById('receipt-tenant-select').value;
+            const tenantObj = state.tenants.find(t => t.id === targetId);
+            
+            if (tenantObj) {
+                document.getElementById('receipt-unit').value = tenantObj.unit;
+                if (tenantObj.rate) {
+                    document.getElementById('receipt-amount').value = tenantObj.rate;
+                }
+                
+                const autoBillingMonth = getFirstUnpaidMonth(tenantObj);
+                document.getElementById('receipt-period-picker').value = autoBillingMonth;
+                document.getElementById('receipt-period').value = formatYearMonthToReadable(autoBillingMonth);
+                
+                updateReceiptPreview();
+            }
+        }
+
+        function updateReceiptPreview() {
+            const tenantSelect = document.getElementById('receipt-tenant-select');
+            const selectedTenantId = tenantSelect.value;
+            const tenant = state.tenants.find(t => t.id === selectedTenantId);
+
+            const displayTenantName = tenant ? tenant.name : "________________________________";
+            const displayUnit = document.getElementById('receipt-unit').value || "________";
+            const currencyCode = document.getElementById('receipt-currency').value;
+            const rawAmountInput = parseFloat(document.getElementById('receipt-amount').value) || 0;
+            const billingPeriod = document.getElementById('receipt-period').value || "________";
+            const rawDateInput = document.getElementById('receipt-date').value;
+            const methodSelected = document.getElementById('receipt-method').value;
+            
+            const refInputEl = document.getElementById('receipt-ref');
+            const transactionRef = refInputEl ? (refInputEl.value.trim() || "Pending Entry") : "Cash / General Handled";
+            
+            // Expected Rate mapping and portion balance calculation
+            // If tenant rate is zero or empty, default the expected rate to the input paid value itself
+            const expectedRate = tenant && tenant.rate ? tenant.rate : rawAmountInput;
+            const remainingBalance = Math.max(0, expectedRate - rawAmountInput);
+
+            // Format printable date layouts
+            let printableDateStr = "--/--/----";
+            if (rawDateInput) {
+                const dateObj = new Date(rawDateInput);
+                printableDateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            }
+
+            // Map Currency Symbol labels
+            const symbolsMap = { 'UGX': 'UGX', 'USD': '$', 'KES': 'KSh', 'GBP': '£' };
+            const currentSymbolText = symbolsMap[currencyCode] || currencyCode;
+            document.getElementById('amount-currency-label').innerText = currencyCode;
+
+            // Generate written translation text for display blocks
+            const translatedWords = numberToWords(rawAmountInput, currencyCode);
+            document.getElementById('amount-words-preview').innerText = translatedWords;
+
+            // Update expectations & live balance on configuration form boxes
+            document.getElementById('form-calc-expected').innerText = `${formatFinancialFigure(expectedRate)} ${currencyCode}`;
+            document.getElementById('form-calc-balance').innerText = `${formatFinancialFigure(remainingBalance)} ${currencyCode}`;
+
+            // Apply modifications to Printable element Nodes
+            document.getElementById('rec-tenant-name').innerText = displayTenantName;
+            document.getElementById('rec-amount-words').innerText = translatedWords;
+            document.getElementById('rec-unit-no').innerText = displayUnit;
+            document.getElementById('rec-period').innerText = billingPeriod;
+            document.getElementById('rec-method').innerText = methodSelected;
+            document.getElementById('rec-ref').innerText = transactionRef;
+            document.getElementById('rec-date').innerText = printableDateStr;
+            document.getElementById('stamp-date-val').innerText = printableDateStr;
+
+            // Sync multi-currency elements inside print canvas
+            document.querySelectorAll('.rec-currency-symbol').forEach(el => {
+                el.innerText = currentSymbolText;
+            });
+            
+            // Update financial rows on Receipt Canvas
+            document.getElementById('rec-rate-val').innerText = formatFinancialFigure(expectedRate);
+            document.getElementById('rec-amount-val').innerText = formatFinancialFigure(rawAmountInput);
+            document.getElementById('rec-balance-val').innerText = formatFinancialFigure(remainingBalance);
+
+            // Dynamically hide balance display layer if there is no remaining balance (for elegant receipts)
+            const balanceWrapper = document.getElementById('rec-balance-wrapper');
+            if (remainingBalance === 0) {
+                balanceWrapper.classList.add('opacity-40');
+            } else {
+                balanceWrapper.classList.remove('opacity-40');
+            }
+
+            // Hide/Show optional stamp layer
+            const verifiedStampFlag = document.getElementById('receipt-include-stamp').checked;
+            document.getElementById('rec-stamp-wrapper').style.opacity = verifiedStampFlag ? '1' : '0';
+
+            // Hide/Show dynamic signature block layer
+            const signatureFlag = document.getElementById('receipt-include-sig').checked;
+            document.getElementById('rec-sig-line').style.opacity = signatureFlag ? '1' : '0';
+        }
+
+        function handleGenerateReceipt(event) {
+            event.preventDefault();
+
+            const tenantSelectVal = document.getElementById('receipt-tenant-select').value;
+            const tenant = state.tenants.find(t => t.id === tenantSelectVal);
+            if (!tenant) {
+                showToast("Please choose a valid tenant account from the registry.", "error");
+                return;
+            }
+
+            const amountValue = parseFloat(document.getElementById('receipt-amount').value);
+            const currencyCode = document.getElementById('receipt-currency').value;
+            const billingMonth = document.getElementById('receipt-period-picker').value;
+            const periodString = document.getElementById('receipt-period').value.trim();
+            const rawDateString = document.getElementById('receipt-date').value;
+            const methodType = document.getElementById('receipt-method').value;
+            
+            const refInputEl = document.getElementById('receipt-ref');
+            const referenceVal = refInputEl ? (refInputEl.value.trim() || 'N/A') : 'Cash';
+
+            // Formulate standard serial reference index
+            const yearStr = rawDateString ? rawDateString.split('-')[0] : '2026';
+            const sequentialPart = String(state.receiptCounter).padStart(4, '0');
+            const officialReceiptNo = `KE-${yearStr}-${sequentialPart}`;
+
+            const newInvoiceRecord = {
+                id: 'rec-' + Date.now() + Math.random().toString(36).substring(2, 5),
+                tenantId: tenant.id,
+                receiptNumber: officialReceiptNo,
+                tenantName: tenant.name,
+                unit: tenant.unit,
+                amount: amountValue,
+                currency: currencyCode,
+                billingMonth: billingMonth, // Store YYYY-MM explicitly to run auditing math functions
+                period: periodString,
+                date: rawDateString,
+                method: methodType,
+                ref: referenceVal
+            };
+
+            // Inject record, increment counters, and update state arrays
+            state.receiptCounter++;
+            state.receipts.unshift(newInvoiceRecord);
+            saveStateToDisk();
+
+            // Render newly generated receipt serial code onto preview canvas
+            document.getElementById('rec-no').innerText = officialReceiptNo;
+
+            showToast(`Receipt ${officialReceiptNo} has been generated and filed inside tenant history folder.`, 'success');
+            
+            // Sync Canvas
+            updateReceiptPreview();
+        }
+
+        function resetReceiptForm() {
+            document.getElementById('generate-receipt-form').reset();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('receipt-date').value = today;
+            
+            const currentYearMonth = new Date().toISOString().slice(0, 7);
+            if (document.getElementById('receipt-period-picker')) {
+                document.getElementById('receipt-period-picker').value = currentYearMonth;
+                document.getElementById('receipt-period').value = formatYearMonthToReadable(currentYearMonth);
+            }
+            
+            onPaymentMethodChange();
+            updateReceiptPreview();
+            showToast("Invoice customizers have been reset to blank states.", "success");
+        }
+
+        function renderGeneralReceiptLogs() {
+            const container = document.getElementById('receipt-log-container');
+            if (state.receipts.length === 0) {
+                container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">No historical records saved in this database session.</p>`;
+                return;
+            }
+
+            container.innerHTML = state.receipts.slice(0, 8).map(r => `
+                <div class="bg-slate-50 hover:bg-slate-100 border border-slate-200 p-2.5 rounded-lg flex items-center justify-between text-xs transition gap-2">
+                    <div class="truncate">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <strong class="text-brand-700 font-bold">${r.receiptNumber}</strong>
+                            <span class="text-[9px] text-slate-400">Unit: ${r.unit}</span>
+                        </div>
+                        <p class="text-slate-800 truncate font-semibold mt-0.5">${r.tenantName}</p>
+                        <p class="text-[9px] text-slate-400">${r.date} &bull; ${r.method}</p>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button onclick="loadReceiptToCanvas('${r.id}')" title="Preview receipt on Canvas" class="p-1.5 bg-white border border-slate-200 text-slate-600 hover:text-brand-600 rounded transition">
+                            <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button onclick="triggerCustomDeleteModal('${r.id}', 'receipt', '${r.receiptNumber}')" title="Delete record entry" class="p-1.5 bg-white border border-slate-200 text-rose-500 hover:bg-rose-50 hover:border-rose-200 rounded transition">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        // Load an old transaction receipt record onto the live preview canvas
+        function loadReceiptToCanvas(receiptId) {
+            const foundReceipt = state.receipts.find(item => item.id === receiptId);
+            if (!foundReceipt) return;
+
+            // Attempt to restore dropdown selection values
+            const dropdown = document.getElementById('receipt-tenant-select');
+            dropdown.value = foundReceipt.tenantId || "";
+
+            // Populate Form inputs
+            document.getElementById('receipt-unit').value = foundReceipt.unit;
+            document.getElementById('receipt-currency').value = foundReceipt.currency;
+            document.getElementById('receipt-amount').value = foundReceipt.amount;
+            document.getElementById('receipt-period').value = foundReceipt.period;
+            document.getElementById('receipt-date').value = foundReceipt.date;
+            document.getElementById('receipt-method').value = foundReceipt.method;
+            
+            onPaymentMethodChange(); // Synchronizes transaction inputs depending on billing methods
+
+            const refField = document.getElementById('receipt-ref');
+            if (refField) {
+                refField.value = foundReceipt.ref;
+            }
+
+            // Sync structural parameters on canvas
+            document.getElementById('rec-no').innerText = foundReceipt.receiptNumber;
+
+            updateReceiptPreview();
+            showToast(`Loaded Invoice ${foundReceipt.receiptNumber} on Live Canvas.`, 'success');
+        }
+
+        function downloadAsPDF() {
+            const canvasElement = document.getElementById('print-target');
+            if (!canvasElement) {
+                showToast("Receipt preview target element was not found.", "error");
+                return;
+            }
+
+            const receiptCode = document.getElementById('rec-no').innerText || "0000";
+            const tenantRawName = document.getElementById('rec-tenant-name').innerText || "Tenant";
+            const safeSystemFilename = tenantRawName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+            showToast("Preparing document file stream...", "success");
+
+            // Configure html2pdf parameters optimized specifically for A5 Landscape
+            const pipelineOptions = {
+                margin: 0,
+                filename: `Kulubya_Estates_Receipt_${receiptCode}_${safeSystemFilename}.pdf`,
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { 
+                    scale: 3, // Ensures crystal clear vector scaling
+                    useCORS: true,
+                    letterRendering: true,
+                    // Use the actual visible element's dimensions
+                    width: canvasElement.offsetWidth,
+                    height: canvasElement.offsetHeight
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a5', 
+                    orientation: 'landscape',
+                    compress: true
+                }
+            };
+
+            // Run HTML-to-PDF compiler pipeline directly on the visible element
+            html2pdf().from(canvasElement).set(pipelineOptions).save()
+                .then(() => {
+                    showToast("PDF downloaded successfully!");
+                })
+                .catch(err => {
+                    console.error("PDF generation failure:", err);
+                    showToast("Conversion failed. Please try again or use the browser 'System Print' fallback.", "error");
+                });
+        }
+    </script>
+</body>
+</html>
