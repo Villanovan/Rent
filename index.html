@@ -9,7 +9,7 @@
     <!-- Google Fonts: Inter for interfaces & Playfair Display for classic estate elegance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&family=Playfair+Display:ital,wght=0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
     <!-- Lucide Icons for clean vector icon design -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- HTML2PDF.js for client-side high fidelity PDF rendering -->
@@ -65,23 +65,29 @@
         .receipt-container {
             width: 210mm;
             height: 148mm;
+            min-width: 210mm;
+            min-height: 148mm;
+            max-width: 210mm;
+            max-height: 148mm;
             box-sizing: border-box;
             background-color: #ffffff;
             position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
         }
         
         .receipt-watermark {
             position: absolute;
-            top: 50%;
+            top: 52%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-12deg);
-            font-size: 4.8rem;
+            font-size: 4.4rem;
             font-weight: 800;
             color: rgba(37, 99, 235, 0.03); /* Faint executive blue watermark */
             pointer-events: none;
             user-select: none;
             white-space: nowrap;
-            letter-spacing: 0.2em;
+            letter-spacing: 0.18em;
         }
         
         /* Realistic Paid Rubber Stamp Graphic styling */
@@ -467,10 +473,10 @@
             </div>
 
             <!-- Aspect-ratio containment wrapper for receipt paper modeling -->
-            <div class="overflow-x-auto bg-slate-100 border border-slate-200 rounded-2xl p-6 shadow-inner flex justify-center items-center">
+            <div class="w-full overflow-x-auto bg-slate-100 border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-inner flex justify-start lg:justify-center items-center">
                 
                 <!-- PRINT BLOCK: The A5 Landscape Paper Sheet Mock (High Contrast Blue/White Theme, Logo-Free) -->
-                <div id="print-target" class="receipt-container border-8 border-brand-800 p-6 flex flex-col justify-between shadow-lg text-slate-800 font-sans relative">
+                <div id="print-target" class="receipt-container border-8 border-brand-800 p-5 flex flex-col justify-between shadow-lg text-slate-800 font-sans relative">
                     
                     <!-- Inner design decorative border standard -->
                     <div class="absolute inset-1 border border-brand-100 pointer-events-none"></div>
@@ -479,7 +485,7 @@
                     <div class="receipt-watermark font-serif select-none">KULUBYA ESTATES</div>
 
                     <!-- Header Segment: Typographical Branding & Dynamic Metadata -->
-                    <div class="relative z-10 flex justify-between items-start border-b-2 border-slate-100 pb-3">
+                    <div class="relative z-10 flex justify-between items-start border-b-2 border-slate-100 pb-2">
                         <div>
                             <!-- Classically structured corporate typography - No graphical logo as explicitly requested -->
                             <h2 class="font-serif text-2xl font-extrabold text-brand-900 tracking-wide">KULUBYA ESTATES</h2>
@@ -502,7 +508,7 @@
                     </div>
 
                     <!-- Middle Segment: Fill-ins Layout mimicking a traditional layout -->
-                    <div class="relative z-10 grid grid-cols-12 gap-y-2.5 text-xs py-3 my-auto border-b border-dashed border-slate-200">
+                    <div class="relative z-10 grid grid-cols-12 gap-y-2 text-xs py-2 my-auto border-b border-dashed border-slate-200">
                         
                         <!-- Tenant details row -->
                         <div class="col-span-12 flex items-baseline gap-2">
@@ -542,7 +548,7 @@
                     </div>
 
                     <!-- Bottom Segment: Multi-tier Ledger Sums, official verification stamp, authorization block -->
-                    <div class="relative z-10 flex justify-between items-end pt-2">
+                    <div class="relative z-10 flex justify-between items-end pt-1.5">
                         
                         <!-- Premium Portion Ledger Block -->
                         <div class="flex items-center gap-1.5">
@@ -551,7 +557,7 @@
                                     <span class="text-slate-500 font-semibold">Expected Rent:</span>
                                     <span class="font-bold text-slate-700"><span class="rec-currency-symbol">UGX</span> <span id="rec-rate-val">0</span></span>
                                 </div>
-                                <div class="px-2.5 py-1.5 flex justify-between bg-brand-50/50">
+                                <div class="px-2.5 py-1 flex justify-between bg-brand-50/50">
                                     <span class="text-brand-800 font-bold">Amount Paid:</span>
                                     <span class="font-black text-brand-950 text-xs"><span class="rec-currency-symbol">UGX</span> <span id="rec-amount-val">0</span></span>
                                 </div>
@@ -563,7 +569,7 @@
                         </div>
 
                         <!-- Deep blue stamp visual representation -->
-                        <div id="rec-stamp-wrapper" class="flex justify-center items-center h-full pb-1 transition duration-150">
+                        <div id="rec-stamp-wrapper" class="flex justify-center items-center h-full pb-0.5 transition duration-150">
                             <div class="paid-stamp border-4 rounded-lg px-3.5 py-1 text-center font-black select-none opacity-90 text-sm">
                                 PAID<br>
                                 <span class="text-[8px] tracking-normal font-sans font-bold" id="stamp-date-val">--/--/----</span>
@@ -573,12 +579,12 @@
                         <!-- Signature panel block - Formatted with authorized representative name 'Nampiima Hasifah' -->
                         <div class="text-center w-52 relative">
                             <!-- Premium Representative Autograph Name Layout -->
-                            <div class="h-10 relative flex justify-center items-end mb-1" id="rec-sig-line">
+                            <div class="h-8 relative flex justify-center items-end mb-0.5" id="rec-sig-line">
                                 <span class="font-serif italic text-brand-700 text-sm font-extrabold tracking-wide absolute bottom-1.5 rotate-[-2deg]" style="font-family: 'Playfair Display', serif;">
                                     Nampiima Hasifah
                                 </span>
                             </div>
-                            <div class="border-t border-slate-300 pt-1">
+                            <div class="border-t border-slate-300 pt-0.5">
                                 <p class="text-[9px] font-bold text-brand-900 uppercase tracking-wider">Nampiima Hasifah</p>
                                 <p class="text-[8px] text-slate-500 mt-0.5">Authorized Estate Representative</p>
                             </div>
@@ -1494,14 +1500,13 @@
             const pipelineOptions = {
                 margin: 0,
                 filename: `Kulubya_Estates_Receipt_${receiptCode}_${safeSystemFilename}.pdf`,
-                image: { type: 'jpeg', quality: 1.0 },
+                image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { 
-                    scale: 3, // Ensures crystal clear vector scaling
+                    scale: 2, // 2 is perfect for high-DPI scaling of A5 layouts
                     useCORS: true,
                     letterRendering: true,
-                    // Use the actual visible element's dimensions
-                    width: canvasElement.offsetWidth,
-                    height: canvasElement.offsetHeight
+                    scrollX: 0, // Solves cutoffs when user is scrolled on their phone
+                    scrollY: 0
                 },
                 jsPDF: { 
                     unit: 'mm', 
