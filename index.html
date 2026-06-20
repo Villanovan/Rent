@@ -14,7 +14,9 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- HTML2PDF.js for client-side high fidelity PDF rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -622,16 +624,31 @@
             modalTargetId: null,
             modalTargetType: null // 'tenant' or 'receipt'
         };
+        // Initialize Supabase
+        // PASTE YOUR ACTUAL URL AND ANON KEY HERE FROM PHASE 1, STEP 3
+        const supabaseUrl = 'https://mtjwegrbguvnkduwfqlf.supabase.co/rest/v1/'; 
+        const supabaseKey = 'sb_publishable_tU8JNu5oeUXRtlDphCddYg_nLQfQVWO';
+        const supabase = window.supabase.createClient(https://mtjwegrbguvnkduwfqlf.supabase.co/rest/v1/, sb_publishable_tU8JNu5oeUXRtlDphCddYg_nLQfQVWO);
 
+        // Cache elements on DOM
+        const sectionRegistry = document.getElementById('section-registry');
+        // ... (keep the rest of your DOM caching the same)
         // Cache elements on DOM
         const sectionRegistry = document.getElementById('section-registry');
         const sectionCreate = document.getElementById('section-create');
         const btnTabRegistry = document.getElementById('btn-tab-registry');
         const btnTabCreate = document.getElementById('btn-tab-create');
-
-        window.onload = function() {
-            // Instantiate Lucide vector assets
+window.onload = function() {
             lucide.createIcons();
+            // ... (keep date logic the same) ...
+
+            // Recover persistent cloud states
+            loadDatabaseData();
+
+            updateDynamicStats();
+            onPaymentMethodChange();
+            updateReceiptPreview();
+        };
             
             // Auto initialize the receipt creator date control to the present day
             const today = new Date().toISOString().split('T')[0];
@@ -792,7 +809,7 @@
             state.modalTargetType = null;
         }
 
-        function confirmSystemDeletion() {
+      async function confirmSystemDeletion() {
             const id = state.modalTargetId;
             const type = state.modalTargetType;
             
@@ -805,26 +822,49 @@
                 const targetTenant = state.tenants.find(t => t.id === id);
                 const tenantName = targetTenant ? targetTenant.name : "Resident";
 
-                // Purge Tenant from Memory state arrays
+                // Delete from Supabase cloud
+                const { error } = await supabase.from('tenants').delete().eq('id', id);
+                
+                if (error) {
+                    showToast("Cloud deletion failed.", "error");
+                    return;
+                }
+
+                // Purge Memory state arrays
                 state.tenants = state.tenants.filter(t => t.id !== id);
                 state.receipts = state.receipts.filter(r => r.tenantId !== id);
                 
-                saveStateToDisk();
+                renderTenantRegistryList();
+                populateTenantDropdown();
+                renderGeneralReceiptLogs();
+                updateDynamicStats();
+                
                 showToast(`Deleted ${tenantName} and all associated ledger records successfully!`, 'success');
+
             } else if (type === 'receipt') {
                 const targetReceipt = state.receipts.find(r => r.id === id);
                 const recNum = targetReceipt ? targetReceipt.receiptNumber : "Receipt";
 
+                // Delete from Supabase cloud
+                const { error } = await supabase.from('receipts').delete().eq('id', id);
+
+                if (error) {
+                    showToast("Cloud deletion failed.", "error");
+                    return;
+                }
+
                 // Purge Receipt
                 state.receipts = state.receipts.filter(r => r.id !== id);
                 
-                saveStateToDisk();
+                renderTenantRegistryList();
+                renderGeneralReceiptLogs();
+                updateDynamicStats();
+                
                 showToast(`Removed receipt ${recNum} successfully from system logs.`, 'success');
             }
 
             closeDeleteModal();
         }
-
         // Show generic Toast notification helper
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -872,43 +912,43 @@
             }
         }
 
-        function loadLocalStorageData() {
+       async function loadDatabaseData() {
             try {
-                const rawTenants = localStorage.getItem('ke_v2_tenants');
-                const rawReceipts = localStorage.getItem('ke_v2_receipts');
-                const rawCounter = localStorage.getItem('ke_v2_counter');
+                // Fetch all tenants from Supabase
+                const { data: dbTenants, error: tenantError } = await supabase
+                    .from('tenants')
+                    .select('*')
+                    .order('name', { ascending: true });
 
-                // If nothing is present, start with completely clean/empty lists
-                state.tenants = rawTenants ? JSON.parse(rawTenants) : [];
-                state.receipts = rawReceipts ? JSON.parse(rawReceipts) : [];
-                state.receiptCounter = rawCounter ? parseInt(rawCounter) : 1;
+                if (tenantError) throw tenantError;
 
-                // Sync data structures to UI controls
-                renderTenantRegistryList();
-                populateTenantDropdown();
-                renderGeneralReceiptLogs();
-            } catch (err) {
-                console.error("Local database read error:", err);
-                showToast("System failed to read persistent local storage parameters.", "error");
-            }
-        }
+                // Fetch all receipts from Supabase
+                const { data: dbReceipts, error: receiptError } = await supabase
+                    .from('receipts')
+                    .select('*')
+                    .order('receiptNumber', { ascending: false });
 
-        function saveStateToDisk() {
-            try {
-                localStorage.setItem('ke_v2_tenants', JSON.stringify(state.tenants));
-                localStorage.setItem('ke_v2_receipts', JSON.stringify(state.receipts));
-                localStorage.setItem('ke_v2_counter', state.receiptCounter.toString());
+                if (receiptError) throw receiptError;
+
+                // Update local state
+                state.tenants = dbTenants || [];
+                state.receipts = dbReceipts || [];
                 
-                // Re-render UI segments
+                // Calculate the next receipt counter based on history
+                state.receiptCounter = state.receipts.length + 1;
+
+                // Render UI
                 renderTenantRegistryList();
                 populateTenantDropdown();
                 renderGeneralReceiptLogs();
                 updateDynamicStats();
+
             } catch (err) {
-                console.error("Local database save error:", err);
-                showToast("Persistent local save operation failure occurred.", "error");
+                console.error("Supabase read error:", err);
+                showToast("System failed to connect to the cloud database.", "error");
             }
         }
+        
 
         function updateDynamicStats() {
             document.getElementById('stat-tenant-count').innerText = state.tenants.length;
@@ -980,10 +1020,10 @@
                 maximumFractionDigits: 2
             });
         }
-
-        function handleAddTenant(event) {
+        async function handleAddTenant(event) {
             event.preventDefault();
             
+            // ... (keep all your existing variable grabs like name, phone, email, etc.)
             const name = document.getElementById('tenant-name').value.trim();
             const phone = document.getElementById('tenant-phone').value.trim();
             const email = document.getElementById('tenant-email').value.trim();
@@ -1006,17 +1046,29 @@
                 startMonth
             };
 
+            // 1. Send to Supabase
+            const { error } = await supabase
+                .from('tenants')
+                .insert([newTenantRecord]);
+
+            if (error) {
+                console.error(error);
+                showToast("Failed to save tenant to cloud.", "error");
+                return;
+            }
+
+            // 2. Update local state and UI
             state.tenants.unshift(newTenantRecord);
-            saveStateToDisk();
+            renderTenantRegistryList();
+            populateTenantDropdown();
+            updateDynamicStats();
             
             document.getElementById('add-tenant-form').reset();
-            // Re-apply default dates post-reset
             const currentYearMonth = new Date().toISOString().slice(0, 7);
             document.getElementById('tenant-start-month').value = currentYearMonth;
             
             showToast(`Registered Account for ${name} under Unit ${unit} successfully!`, 'success');
         }
-
         // Expanded view toggler to show specific transaction history
         function toggleTenantHistoryDrawer(tenantId) {
             const drawer = document.getElementById(`history-drawer-${tenantId}`);
@@ -1350,8 +1402,7 @@
             const signatureFlag = document.getElementById('receipt-include-sig').checked;
             document.getElementById('rec-sig-line').style.opacity = signatureFlag ? '1' : '0';
         }
-
-        function handleGenerateReceipt(event) {
+async function handleGenerateReceipt(event) {
             event.preventDefault();
 
             const tenantSelectVal = document.getElementById('receipt-tenant-select').value;
@@ -1361,6 +1412,7 @@
                 return;
             }
 
+            // ... (keep existing variable grabs)
             const amountValue = parseFloat(document.getElementById('receipt-amount').value);
             const currencyCode = document.getElementById('receipt-currency').value;
             const billingMonth = document.getElementById('receipt-period-picker').value;
@@ -1371,7 +1423,6 @@
             const refInputEl = document.getElementById('receipt-ref');
             const referenceVal = refInputEl ? (refInputEl.value.trim() || 'N/A') : 'Cash';
 
-            // Formulate standard serial reference index
             const yearStr = rawDateString ? rawDateString.split('-')[0] : '2026';
             const sequentialPart = String(state.receiptCounter).padStart(4, '0');
             const officialReceiptNo = `KE-${yearStr}-${sequentialPart}`;
@@ -1384,24 +1435,34 @@
                 unit: tenant.unit,
                 amount: amountValue,
                 currency: currencyCode,
-                billingMonth: billingMonth, // Store YYYY-MM explicitly to run auditing math functions
+                billingMonth: billingMonth, 
                 period: periodString,
                 date: rawDateString,
                 method: methodType,
                 ref: referenceVal
             };
 
-            // Inject record, increment counters, and update state arrays
+            // 1. Send to Supabase
+            const { error } = await supabase
+                .from('receipts')
+                .insert([newInvoiceRecord]);
+
+            if (error) {
+                console.error(error);
+                showToast("Failed to save receipt to cloud.", "error");
+                return;
+            }
+
+            // 2. Update local state and UI
             state.receiptCounter++;
             state.receipts.unshift(newInvoiceRecord);
-            saveStateToDisk();
-
-            // Render newly generated receipt serial code onto preview canvas
-            document.getElementById('rec-no').innerText = officialReceiptNo;
-
-            showToast(`Receipt ${officialReceiptNo} has been generated and filed inside tenant history folder.`, 'success');
             
-            // Sync Canvas
+            renderGeneralReceiptLogs();
+            renderTenantRegistryList(); // Refreshes history drawers
+            updateDynamicStats();
+
+            document.getElementById('rec-no').innerText = officialReceiptNo;
+            showToast(`Receipt ${officialReceiptNo} has been generated and filed in the cloud.`, 'success');
             updateReceiptPreview();
         }
 
