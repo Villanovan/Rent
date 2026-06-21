@@ -14,8 +14,6 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- HTML2PDF.js for client-side high fidelity PDF rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         tailwind.config = {
@@ -611,9 +609,8 @@
     <footer class="mt-auto border-t border-slate-200 bg-white py-5 px-6 text-center text-xs text-slate-500">
         <p>© 2026 Kulubya Estates Management Core. All tenant financial logs are archived on encrypted local ledger states.</p>
     </footer>
-
+// Core Web-app Reactive State variables
     <script>
-        // Core Web-app Reactive State variables
         let state = {
             tenants: [],      // Dynamic tenant profiles
             receipts: [],     // Dynamic globally issued receipts ledger
@@ -624,35 +621,27 @@
             modalTargetId: null,
             modalTargetType: null // 'tenant' or 'receipt'
         };
-        // Initialize Supabase
-        // PASTE YOUR ACTUAL URL AND ANON KEY HERE FROM PHASE 1, STEP 3
-        const supabaseUrl = 'https://mtjwegrbguvnkduwfqlf.supabase.co/rest/v1/'; 
-        const supabaseKey = 'sb_publishable_tU8JNu5oeUXRtlDphCddYg_nLQfQVWO';
-        const supabase = window.supabase.createClient(https://mtjwegrbguvnkduwfqlf.supabase.co/rest/v1/, sb_publishable_tU8JNu5oeUXRtlDphCddYg_nLQfQVWO);
 
-        // Cache elements on DOM
-        const sectionRegistry = document.getElementById('section-registry');
-        // ... (keep the rest of your DOM caching the same)
-        // Cache elements on DOM
+        // Initialize Supabase correctly using defined variables
+        const supabaseUrl = 'https://mtjwegrbguvnkduwfqlf.supabase.co'; 
+        const supabaseKey = 'sb_publishable_tU8JNu5oeUXRtlDphCddYg_nLQfQVWO';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Cache elements on DOM (Removed duplicates)
         const sectionRegistry = document.getElementById('section-registry');
         const sectionCreate = document.getElementById('section-create');
         const btnTabRegistry = document.getElementById('btn-tab-registry');
         const btnTabCreate = document.getElementById('btn-tab-create');
-window.onload = function() {
+
+        // Unified Lifecycle Initialization
+        window.onload = function() {
             lucide.createIcons();
-            // ... (keep date logic the same) ...
-
-            // Recover persistent cloud states
-            loadDatabaseData();
-
-            updateDynamicStats();
-            onPaymentMethodChange();
-            updateReceiptPreview();
-        };
             
             // Auto initialize the receipt creator date control to the present day
             const today = new Date().toISOString().split('T')[0];
-            document.getElementById('receipt-date').value = today;
+            if (document.getElementById('receipt-date')) {
+                document.getElementById('receipt-date').value = today;
+            }
 
             // Initialize default dates inside the registration form to current month
             const currentYearMonth = new Date().toISOString().slice(0, 7); // "YYYY-MM"
@@ -664,11 +653,8 @@ window.onload = function() {
                 document.getElementById('receipt-period').value = formatYearMonthToReadable(currentYearMonth);
             }
 
-            // Recover persistent browser states
-            loadLocalStorageData();
-
-            // Refresh Dynamic counters
-            updateDynamicStats();
+            // Recover persistent cloud states from Supabase
+            loadDatabaseData();
 
             // Perform dynamic validation layout check on payment method dropdown
             onPaymentMethodChange();
@@ -699,14 +685,13 @@ window.onload = function() {
             const today = new Date();
             today.setHours(0,0,0,0);
             
-            // Map of all paid billing periods for this unique tenant profile
             const paidMonths = new Set(
                 state.receipts
                     .filter(r => r.tenantId === tenant.id)
-                    .map(r => r.billingMonth) // format: "YYYY-MM"
+                    .map(r => r.billingMonth) 
             );
             
-            let trackingCursor = tenant.startMonth; // format: "YYYY-MM"
+            let trackingCursor = tenant.startMonth; 
             if (!trackingCursor) return 0;
 
             const todayYearMonth = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, '0');
@@ -716,25 +701,21 @@ window.onload = function() {
             
             let oldestUnpaidDueDate = null;
             
-            // Iterate months sequentially to discover the oldest unpaid month
             while (checkDate <= endDate) {
                 const year = checkDate.getFullYear();
                 const month = String(checkDate.getMonth() + 1).padStart(2, '0');
                 const ymString = `${year}-${month}`;
                 
                 if (!paidMonths.has(ymString)) {
-                    // Identify the due day boundary (handle cases where months are short)
                     const limitDay = Math.min(tenant.dueDay, new Date(year, checkDate.getMonth() + 1, 0).getDate());
                     const dueDate = new Date(year, checkDate.getMonth(), limitDay);
                     dueDate.setHours(0,0,0,0);
                     
                     if (today > dueDate) {
                         oldestUnpaidDueDate = dueDate;
-                        break; // Stop at the oldest unpaid cycle to begin the count-up boundary
+                        break; 
                     }
                 }
-                
-                // Move step cursor forward to next calendar month
                 checkDate.setMonth(checkDate.getMonth() + 1);
             }
             
@@ -779,7 +760,7 @@ window.onload = function() {
             updateReceiptPreview();
         }
 
-        // Unified safe delete modal dialog functions (eliminates standard blocking browser alert/confirm prompts)
+        // Unified safe delete modal dialog functions
         function triggerCustomDeleteModal(targetId, targetType, targetName) {
             state.modalTargetId = targetId;
             state.modalTargetType = targetType;
@@ -800,7 +781,6 @@ window.onload = function() {
             modal.classList.add('flex');
         }
 
-        // Close dynamic overlays
         function closeDeleteModal() {
             const modal = document.getElementById('delete-modal');
             modal.classList.remove('flex');
@@ -809,7 +789,7 @@ window.onload = function() {
             state.modalTargetType = null;
         }
 
-      async function confirmSystemDeletion() {
+        async function confirmSystemDeletion() {
             const id = state.modalTargetId;
             const type = state.modalTargetType;
             
@@ -822,7 +802,6 @@ window.onload = function() {
                 const targetTenant = state.tenants.find(t => t.id === id);
                 const tenantName = targetTenant ? targetTenant.name : "Resident";
 
-                // Delete from Supabase cloud
                 const { error } = await supabase.from('tenants').delete().eq('id', id);
                 
                 if (error) {
@@ -830,7 +809,6 @@ window.onload = function() {
                     return;
                 }
 
-                // Purge Memory state arrays
                 state.tenants = state.tenants.filter(t => t.id !== id);
                 state.receipts = state.receipts.filter(r => r.tenantId !== id);
                 
@@ -839,13 +817,12 @@ window.onload = function() {
                 renderGeneralReceiptLogs();
                 updateDynamicStats();
                 
-                showToast(`Deleted ${tenantName} and all associated ledger records successfully!`, 'success');
+                showToast(`Deleted ${tenantName} and all records successfully!`, 'success');
 
             } else if (type === 'receipt') {
                 const targetReceipt = state.receipts.find(r => r.id === id);
                 const recNum = targetReceipt ? targetReceipt.receiptNumber : "Receipt";
 
-                // Delete from Supabase cloud
                 const { error } = await supabase.from('receipts').delete().eq('id', id);
 
                 if (error) {
@@ -853,7 +830,6 @@ window.onload = function() {
                     return;
                 }
 
-                // Purge Receipt
                 state.receipts = state.receipts.filter(r => r.id !== id);
                 
                 renderTenantRegistryList();
@@ -865,7 +841,7 @@ window.onload = function() {
 
             closeDeleteModal();
         }
-        // Show generic Toast notification helper
+
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -885,12 +861,10 @@ window.onload = function() {
             container.appendChild(toast);
             lucide.createIcons();
 
-            // CSS Animation Transition trigger
             setTimeout(() => {
                 toast.classList.remove('translate-y-2', 'opacity-0');
             }, 10);
 
-            // De-spawn trigger
             setTimeout(() => {
                 toast.classList.add('translate-y-2', 'opacity-0');
                 setTimeout(() => toast.remove(), 300);
@@ -912,9 +886,8 @@ window.onload = function() {
             }
         }
 
-       async function loadDatabaseData() {
+        async function loadDatabaseData() {
             try {
-                // Fetch all tenants from Supabase
                 const { data: dbTenants, error: tenantError } = await supabase
                     .from('tenants')
                     .select('*')
@@ -922,7 +895,6 @@ window.onload = function() {
 
                 if (tenantError) throw tenantError;
 
-                // Fetch all receipts from Supabase
                 const { data: dbReceipts, error: receiptError } = await supabase
                     .from('receipts')
                     .select('*')
@@ -930,14 +902,10 @@ window.onload = function() {
 
                 if (receiptError) throw receiptError;
 
-                // Update local state
                 state.tenants = dbTenants || [];
                 state.receipts = dbReceipts || [];
-                
-                // Calculate the next receipt counter based on history
                 state.receiptCounter = state.receipts.length + 1;
 
-                // Render UI
                 renderTenantRegistryList();
                 populateTenantDropdown();
                 renderGeneralReceiptLogs();
@@ -948,7 +916,6 @@ window.onload = function() {
                 showToast("System failed to connect to the cloud database.", "error");
             }
         }
-        
 
         function updateDynamicStats() {
             document.getElementById('stat-tenant-count').innerText = state.tenants.length;
@@ -1020,10 +987,10 @@ window.onload = function() {
                 maximumFractionDigits: 2
             });
         }
+
         async function handleAddTenant(event) {
             event.preventDefault();
             
-            // ... (keep all your existing variable grabs like name, phone, email, etc.)
             const name = document.getElementById('tenant-name').value.trim();
             const phone = document.getElementById('tenant-phone').value.trim();
             const email = document.getElementById('tenant-email').value.trim();
@@ -1046,7 +1013,6 @@ window.onload = function() {
                 startMonth
             };
 
-            // 1. Send to Supabase
             const { error } = await supabase
                 .from('tenants')
                 .insert([newTenantRecord]);
@@ -1057,19 +1023,17 @@ window.onload = function() {
                 return;
             }
 
-            // 2. Update local state and UI
             state.tenants.unshift(newTenantRecord);
             renderTenantRegistryList();
             populateTenantDropdown();
             updateDynamicStats();
             
             document.getElementById('add-tenant-form').reset();
-            const currentYearMonth = new Date().toISOString().slice(0, 7);
-            document.getElementById('tenant-start-month').value = currentYearMonth;
+            document.getElementById('tenant-start-month').value = new Date().toISOString().slice(0, 7);
             
             showToast(`Registered Account for ${name} under Unit ${unit} successfully!`, 'success');
         }
-        // Expanded view toggler to show specific transaction history
+
         function toggleTenantHistoryDrawer(tenantId) {
             const drawer = document.getElementById(`history-drawer-${tenantId}`);
             const icon = document.getElementById(`history-chevron-${tenantId}`);
@@ -1084,7 +1048,6 @@ window.onload = function() {
             }
         }
 
-        // Render localized history list for a unique tenant profile
         function renderTenantLocalHistory(tenantId) {
             const historyContainer = document.getElementById(`history-items-${tenantId}`);
             const tenantReceipts = state.receipts.filter(r => r.tenantId === tenantId);
@@ -1119,7 +1082,6 @@ window.onload = function() {
             lucide.createIcons();
         }
 
-        // Quick shortcut to generate receipt for a tenant
         function triggerImmediateReceiptGeneration(tenantId) {
             switchTab('create');
             const dropdown = document.getElementById('receipt-tenant-select');
@@ -1146,7 +1108,6 @@ window.onload = function() {
                         <p class="text-xs text-slate-500 px-6 mt-1 max-w-xs">Use the form above to add an account to the directory.</p>
                     </div>
                 `;
-                lucide.createIcons();
                 return;
             }
 
@@ -1157,16 +1118,12 @@ window.onload = function() {
                         <p class="text-xs font-semibold">No registry match found for your search term.</p>
                     </div>
                 `;
-                lucide.createIcons();
                 return;
             }
 
             container.innerHTML = filtered.map(t => {
-                // Compute summary stats for the tenant card header
                 const tenantReceipts = state.receipts.filter(r => r.tenantId === t.id);
                 const totalPaid = tenantReceipts.reduce((sum, r) => sum + r.amount, 0);
-                
-                // Overdue status meter calculation
                 const overdueDays = calculateOverdueDays(t);
                 let overdueBadgeHTML = '';
                 let cardAlertStyle = 'border-slate-200';
@@ -1204,7 +1161,6 @@ window.onload = function() {
                                 </div>
                             </div>
                             
-                            <!-- Control Quick Buttons -->
                             <div class="flex flex-col items-end gap-2 shrink-0">
                                 ${overdueBadgeHTML}
                                 <div class="flex items-center gap-1.5 mt-1">
@@ -1218,7 +1174,6 @@ window.onload = function() {
                             </div>
                         </div>
 
-                        <!-- Accordion Transaction History Header Trigger -->
                         <div class="border-t border-slate-100 pt-3 flex items-center justify-between">
                             <button onclick="toggleTenantHistoryDrawer('${t.id}')" class="flex items-center gap-1.5 text-[11px] font-bold text-brand-600 hover:text-brand-700 transition">
                                 <i data-lucide="chevron-down" id="history-chevron-${t.id}" class="w-3.5 h-3.5 transition duration-150"></i>
@@ -1227,12 +1182,9 @@ window.onload = function() {
                             <span class="text-[10px] text-slate-400">Total Collected: <strong class="text-slate-700">${formatFinancialFigure(totalPaid)} UGX</strong></span>
                         </div>
 
-                        <!-- Expandable localized ledger container -->
                         <div id="history-drawer-${t.id}" class="hidden pt-2 border-t border-dashed border-slate-100 space-y-2">
                             <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Archived Invoices Ledger</div>
-                            <div id="history-items-${t.id}" class="space-y-1.5 max-h-[160px] overflow-y-auto">
-                                <!-- Populated on expand -->
-                            </div>
+                            <div id="history-items-${t.id}" class="space-y-1.5 max-h-[160px] overflow-y-auto"></div>
                         </div>
                     </div>
                 `;
@@ -1250,7 +1202,6 @@ window.onload = function() {
                     <option value="${t.id}">${t.name} (${t.unit})</option>
                 `).join('');
 
-            // Restore selection state
             if (currentlySelected && state.tenants.some(t => t.id === currentlySelected)) {
                 dropdown.value = currentlySelected;
             }
@@ -1258,10 +1209,8 @@ window.onload = function() {
 
         function onPaymentMethodChange() {
             const method = document.getElementById('receipt-method').value;
-            const refField = document.getElementById('receipt-ref');
             const wrapper = document.getElementById('tx-wrapper');
 
-            // Render dynamic context and requirements based on payment channel
             if (method === 'Mobile Money') {
                 wrapper.innerHTML = `
                     <label class="block text-[11px] font-bold text-blue-700 uppercase tracking-wide mb-1 flex items-center gap-1.5" for="receipt-ref">
@@ -1341,32 +1290,25 @@ window.onload = function() {
             const refInputEl = document.getElementById('receipt-ref');
             const transactionRef = refInputEl ? (refInputEl.value.trim() || "Pending Entry") : "Cash / General Handled";
             
-            // Expected Rate mapping and portion balance calculation
-            // If tenant rate is zero or empty, default the expected rate to the input paid value itself
             const expectedRate = tenant && tenant.rate ? tenant.rate : rawAmountInput;
             const remainingBalance = Math.max(0, expectedRate - rawAmountInput);
 
-            // Format printable date layouts
             let printableDateStr = "--/--/----";
             if (rawDateInput) {
                 const dateObj = new Date(rawDateInput);
                 printableDateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
             }
 
-            // Map Currency Symbol labels
             const symbolsMap = { 'UGX': 'UGX', 'USD': '$', 'KES': 'KSh', 'GBP': '£' };
             const currentSymbolText = symbolsMap[currencyCode] || currencyCode;
             document.getElementById('amount-currency-label').innerText = currencyCode;
 
-            // Generate written translation text for display blocks
             const translatedWords = numberToWords(rawAmountInput, currencyCode);
             document.getElementById('amount-words-preview').innerText = translatedWords;
 
-            // Update expectations & live balance on configuration form boxes
             document.getElementById('form-calc-expected').innerText = `${formatFinancialFigure(expectedRate)} ${currencyCode}`;
             document.getElementById('form-calc-balance').innerText = `${formatFinancialFigure(remainingBalance)} ${currencyCode}`;
 
-            // Apply modifications to Printable element Nodes
             document.getElementById('rec-tenant-name').innerText = displayTenantName;
             document.getElementById('rec-amount-words').innerText = translatedWords;
             document.getElementById('rec-unit-no').innerText = displayUnit;
@@ -1376,17 +1318,14 @@ window.onload = function() {
             document.getElementById('rec-date').innerText = printableDateStr;
             document.getElementById('stamp-date-val').innerText = printableDateStr;
 
-            // Sync multi-currency elements inside print canvas
             document.querySelectorAll('.rec-currency-symbol').forEach(el => {
                 el.innerText = currentSymbolText;
             });
             
-            // Update financial rows on Receipt Canvas
             document.getElementById('rec-rate-val').innerText = formatFinancialFigure(expectedRate);
             document.getElementById('rec-amount-val').innerText = formatFinancialFigure(rawAmountInput);
             document.getElementById('rec-balance-val').innerText = formatFinancialFigure(remainingBalance);
 
-            // Dynamically hide balance display layer if there is no remaining balance (for elegant receipts)
             const balanceWrapper = document.getElementById('rec-balance-wrapper');
             if (remainingBalance === 0) {
                 balanceWrapper.classList.add('opacity-40');
@@ -1394,15 +1333,14 @@ window.onload = function() {
                 balanceWrapper.classList.remove('opacity-40');
             }
 
-            // Hide/Show optional stamp layer
             const verifiedStampFlag = document.getElementById('receipt-include-stamp').checked;
             document.getElementById('rec-stamp-wrapper').style.opacity = verifiedStampFlag ? '1' : '0';
 
-            // Hide/Show dynamic signature block layer
             const signatureFlag = document.getElementById('receipt-include-sig').checked;
             document.getElementById('rec-sig-line').style.opacity = signatureFlag ? '1' : '0';
         }
-async function handleGenerateReceipt(event) {
+
+        async function handleGenerateReceipt(event) {
             event.preventDefault();
 
             const tenantSelectVal = document.getElementById('receipt-tenant-select').value;
@@ -1412,7 +1350,6 @@ async function handleGenerateReceipt(event) {
                 return;
             }
 
-            // ... (keep existing variable grabs)
             const amountValue = parseFloat(document.getElementById('receipt-amount').value);
             const currencyCode = document.getElementById('receipt-currency').value;
             const billingMonth = document.getElementById('receipt-period-picker').value;
@@ -1442,7 +1379,6 @@ async function handleGenerateReceipt(event) {
                 ref: referenceVal
             };
 
-            // 1. Send to Supabase
             const { error } = await supabase
                 .from('receipts')
                 .insert([newInvoiceRecord]);
@@ -1453,12 +1389,11 @@ async function handleGenerateReceipt(event) {
                 return;
             }
 
-            // 2. Update local state and UI
             state.receiptCounter++;
             state.receipts.unshift(newInvoiceRecord);
             
             renderGeneralReceiptLogs();
-            renderTenantRegistryList(); // Refreshes history drawers
+            renderTenantRegistryList(); 
             updateDynamicStats();
 
             document.getElementById('rec-no').innerText = officialReceiptNo;
@@ -1468,8 +1403,7 @@ async function handleGenerateReceipt(event) {
 
         function resetReceiptForm() {
             document.getElementById('generate-receipt-form').reset();
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('receipt-date').value = today;
+            document.getElementById('receipt-date').value = new Date().toISOString().split('T')[0];
             
             const currentYearMonth = new Date().toISOString().slice(0, 7);
             if (document.getElementById('receipt-period-picker')) {
@@ -1513,16 +1447,13 @@ async function handleGenerateReceipt(event) {
             lucide.createIcons();
         }
 
-        // Load an old transaction receipt record onto the live preview canvas
         function loadReceiptToCanvas(receiptId) {
             const foundReceipt = state.receipts.find(item => item.id === receiptId);
             if (!foundReceipt) return;
 
-            // Attempt to restore dropdown selection values
             const dropdown = document.getElementById('receipt-tenant-select');
             dropdown.value = foundReceipt.tenantId || "";
 
-            // Populate Form inputs
             document.getElementById('receipt-unit').value = foundReceipt.unit;
             document.getElementById('receipt-currency').value = foundReceipt.currency;
             document.getElementById('receipt-amount').value = foundReceipt.amount;
@@ -1530,14 +1461,13 @@ async function handleGenerateReceipt(event) {
             document.getElementById('receipt-date').value = foundReceipt.date;
             document.getElementById('receipt-method').value = foundReceipt.method;
             
-            onPaymentMethodChange(); // Synchronizes transaction inputs depending on billing methods
+            onPaymentMethodChange(); 
 
             const refField = document.getElementById('receipt-ref');
             if (refField) {
                 refField.value = foundReceipt.ref;
             }
 
-            // Sync structural parameters on canvas
             document.getElementById('rec-no').innerText = foundReceipt.receiptNumber;
 
             updateReceiptPreview();
@@ -1557,36 +1487,31 @@ async function handleGenerateReceipt(event) {
 
             showToast("Preparing document file stream...", "success");
 
-            // Configure html2pdf parameters optimized specifically for 160mm x 110mm Slip size
             const pipelineOptions = {
                 margin: 0,
                 filename: `Kulubya_Estates_Receipt_${receiptCode}_${safeSystemFilename}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { 
-                    scale: 3, // High scale output to secure crisp graphics on the compact canvas
+                    scale: 3, 
                     useCORS: true,
                     letterRendering: true,
-                    scrollX: 0, // Solves cutoffs when user is scrolled on their mobile screens
+                    scrollX: 0, 
                     scrollY: 0
                 },
                 jsPDF: { 
                     unit: 'mm', 
-                    format: [160, 110], // Output exactly matched to match the scaled display aspect ratio
+                    format: [160, 110], 
                     orientation: 'landscape',
                     compress: true
                 }
             };
 
-            // Run HTML-to-PDF compiler pipeline directly on the visible element
             html2pdf().from(canvasElement).set(pipelineOptions).save()
                 .then(() => {
                     showToast("PDF downloaded successfully!");
                 })
                 .catch(err => {
                     console.error("PDF generation failure:", err);
-                    showToast("Conversion failed. Please try again or use the browser 'System Print' fallback.", "error");
+                    showToast("Conversion failed. Please use browser 'System Print' fallback.", "error");
                 });
         }
-    </script>
-</body>
-</html>
